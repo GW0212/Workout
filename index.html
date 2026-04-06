@@ -62,7 +62,8 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 }
 #btn-menu-toggle:hover{background:var(--surface3);}
 #btn-menu-toggle span{display:block;width:16px;height:2px;background:currentColor;border-radius:2px;}
-#mobile-logo{font-family:'Pretendard',sans-serif;font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;pointer-events:none;position:absolute;left:50%;transform:translateX(-50%);max-width:calc(100vw - 190px);}
+#mobile-logo{font-family:'Pretendard',sans-serif;font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;pointer-events:none;position:absolute;left:50%;transform:translateX(-50%);max-width:calc(100vw - 210px);}
+#mobile-header-right{margin-left:auto;display:flex;align-items:center;gap:12px;position:relative;z-index:1;}
 
 /* ══ 공통 아이콘 버튼 ══ */
 .hdr-icon-btn{
@@ -513,8 +514,10 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     <span></span><span></span><span></span>
   </button>
   <div id="mobile-logo">💪 Workout</div>
-  <button class="hdr-icon-btn" id="btn-theme-m" onclick="toggleTheme()" title="테마 전환">🌙</button>
-  <button id="mobile-add-btn" onclick="openAddItem()" disabled>＋</button>
+  <div id="mobile-header-right">
+    <button class="hdr-icon-btn" id="btn-theme-m" onclick="toggleTheme()" title="테마 전환">🌙</button>
+    <button id="mobile-add-btn" onclick="openAddItem()" disabled>＋</button>
+  </div>
 </div>
 
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
