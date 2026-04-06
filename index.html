@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>운동 기록</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Workout</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%23ff4e2a' x='0' y='0' width='64' height='64' rx='14'/%3E%3Crect fill='white' x='28' y='25' width='8' height='14' rx='2'/%3E%3Crect fill='white' x='5' y='21' width='7' height='22' rx='3'/%3E%3Crect fill='white' x='52' y='21' width='7' height='22' rx='3'/%3E%3Crect fill='white' x='3' y='26' width='11' height='12' rx='2'/%3E%3Crect fill='white' x='50' y='26' width='11' height='12' rx='2'/%3E%3Crect fill='white' x='12' y='29' width='16' height='6' rx='2'/%3E%3Crect fill='white' x='36' y='29' width='16' height='6' rx='2'/%3E%3C/svg%3E"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Pretendard:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -45,8 +45,8 @@ body.light {
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;min-height:100%;overflow:hidden;overscroll-behavior:none;}
-body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);display:flex;transition:background .25s,color .25s;}
+html,body{height:100%;}
+body{margin:0;font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);display:flex;transition:background .25s,color .25s;overflow:hidden;}
 
 /* ══ 모바일 헤더 ══ */
 #mobile-header{
@@ -61,9 +61,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 }
 #btn-menu-toggle:hover{background:var(--surface3);}
 #btn-menu-toggle span{display:block;width:16px;height:2px;background:currentColor;border-radius:2px;}
-#mobile-logo{font-family:'Pretendard',sans-serif;font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.2px;flex:1;display:flex;align-items:center;gap:10px;min-width:0;}
-#mobile-logo .mobile-logo-mark{font-size:18px;line-height:1;flex-shrink:0;}
-#mobile-logo .mobile-logo-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#mobile-logo{font-family:'Pretendard',sans-serif;font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.2px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* ══ 공통 아이콘 버튼 ══ */
 .hdr-icon-btn{
@@ -86,7 +84,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 
 /* ══ 사이드바 ══ */
 #sidebar{
-  width:var(--sidebar-w);min-width:var(--sidebar-w);height:100dvh;
+  width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;
   background:var(--surface);
   border-right:2px solid var(--border);
   display:flex;flex-direction:column;z-index:100;
@@ -115,7 +113,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 }
 
 /* 메뉴 리스트 */
-#menu-list{flex:1;min-height:0;overflow-y:auto;padding:12px 10px;}
+#menu-list{flex:1;min-height:0;overflow-y:auto;padding:12px 10px 12px;}
 #menu-list::-webkit-scrollbar{width:3px;}
 #menu-list::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:2px;}
 
@@ -217,15 +215,14 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 #btn-add-item:disabled{opacity:.25;cursor:not-allowed;transform:none;box-shadow:none;}
 
 /* 아이템 컨테이너 */
-#items-container{flex:1;overflow-y:auto;padding:22px 24px;background:var(--bg);}
+#items-container{flex:1;overflow-y:auto;padding:22px 24px;background:var(--bg);min-height:0;}
 #items-container::-webkit-scrollbar{width:4px;}
 #items-container::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
 
 /* ══ 빈 상태 ══ */
 #empty-state{
   display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  min-height:100%;gap:16px;animation:fadeUp .4s ease;
-  padding-top:24px;
+  min-height:100%;gap:16px;animation:fadeUp .4s ease;padding-top:8px;
 }
 .empty-box{
   background:var(--surface);
@@ -271,7 +268,6 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 
 /* 카드 제목 바 */
 .card-title-bar{
-  min-height:48px;
   padding:14px 16px 12px;
   border-bottom:1px solid var(--border);
   background:var(--surface2);
@@ -436,37 +432,48 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 
 /* ══ 반응형 ══ */
 @media(max-width:768px){
-  html,body{height:100%;overflow:hidden;}
-  body{flex-direction:row;}
-  #mobile-header{display:flex;padding-top:env(safe-area-inset-top);height:calc(56px + env(safe-area-inset-top));}
-  #sidebar{position:fixed;top:calc(56px + env(safe-area-inset-top));left:0;height:calc(100dvh - 56px - env(safe-area-inset-top));width:min(264px,78vw);min-width:min(264px,78vw);transform:translateX(-100%);z-index:150;border-right:1px solid var(--border2);box-shadow:0 18px 40px rgba(0,0,0,.45);}
+  html,body{height:100dvh;overflow:hidden;}
+  body{flex-direction:column;overflow:hidden;}
+  #mobile-header{display:flex;position:sticky;top:0;height:56px;padding:0 14px;z-index:220;padding-top:env(safe-area-inset-top);height:calc(56px + env(safe-area-inset-top));}
+  #sidebar{
+    position:fixed;
+    top:calc(56px + env(safe-area-inset-top));
+    left:0;
+    bottom:0;
+    width:min(320px,84vw);
+    min-width:min(320px,84vw);
+    height:calc(100dvh - 56px - env(safe-area-inset-top));
+    transform:translateX(-100%);
+    z-index:210;
+    box-shadow:var(--shadow);
+  }
   #sidebar.open{transform:translateX(0);}
-  #sidebar-header{padding:16px 14px 14px;}
-  #menu-list{padding:10px 8px 14px;}
-  #sidebar-footer{padding:12px 8px calc(14px + env(safe-area-inset-bottom));}
-  #sidebar-overlay.open{display:block;top:calc(56px + env(safe-area-inset-top));}
-  #main{margin-top:calc(56px + env(safe-area-inset-top));min-height:calc(100dvh - 56px - env(safe-area-inset-top));overflow:hidden;}
-  #main-header{padding:12px 14px;min-height:56px;position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:20;justify-content:center;}
-  #main-title{font-size:22px;flex:none;width:100%;text-align:center;}
-  #main-header .hdr-icon-btn,#btn-add-item{display:none;}
-  #items-container{padding:12px;overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;-webkit-overflow-scrolling:touch;scroll-behavior:auto;}
-  #empty-state{justify-content:flex-start;padding-top:8px;min-height:auto;}
-  .empty-box{max-width:none;width:100%;padding:28px 22px;}
+  #sidebar-header{padding:18px 14px 14px;}
+  #sidebar-footer{padding:12px 10px calc(12px + env(safe-area-inset-bottom));}
+  #sidebar-overlay.open{display:block;z-index:205;}
+  #main{
+    margin-top:0;
+    min-height:calc(100dvh - 56px - env(safe-area-inset-top));
+    height:calc(100dvh - 56px - env(safe-area-inset-top));
+    overflow:hidden;
+  }
+  #main-header{padding:12px 14px;min-height:58px;position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:10;}
+  #main-title{font-size:22px;}
+  #btn-add-item{display:none;}
+  #btn-theme{display:none;}
+  #items-container{padding:12px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;scroll-behavior:auto;}
   .items-grid{grid-template-columns:1fr;gap:12px;}
   .item-card:hover{transform:none;box-shadow:0 2px 12px rgba(0,0,0,.25);}
   .modal{padding:22px 18px;border-radius:16px;}
-  .modal-overlay{padding:12px;align-items:flex-end;}
-  .modal{max-width:none;border-bottom-left-radius:0;border-bottom-right-radius:0;}
-}
-@media(max-width:768px) and (orientation:landscape){
-  #mobile-header{height:56px;padding-top:0;}
-  #sidebar{top:56px;}
-  #sidebar-overlay.open{top:56px;}
-  #main{margin-top:56px;min-height:calc(100vh - 56px);}
-  #main-header{top:56px;}
+  .modal-overlay{padding:12px;}
 }
 @media(max-width:480px){
-  #items-container{padding:10px;}
+  #items-container{padding:12px 10px calc(16px + env(safe-area-inset-bottom));}
+  #main-title{font-size:18px;}
+  .card-title-bar{padding:12px 14px 10px;}
+  .card-body{padding:12px 14px;}
+  .card-footer{padding:10px 12px;}
+}
   #main-title{font-size:20px;}
 }
 </style>
@@ -478,7 +485,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
   <button id="btn-menu-toggle" onclick="toggleSidebar()">
     <span></span><span></span><span></span>
   </button>
-  <div id="mobile-logo"><span class="mobile-logo-mark">💪</span><span class="mobile-logo-text">Workout</span></div>
+  <div id="mobile-logo">💪 Workout</div>
   <button class="hdr-icon-btn" id="btn-theme-m" onclick="toggleTheme()" title="테마 전환">🌙</button>
   <button id="mobile-add-btn" onclick="openAddItem()" disabled>＋</button>
 </div>
@@ -561,10 +568,6 @@ Object.values(data.items).forEach(arr => arr.forEach(item => { if(!item.title) i
 let activeMenuId = null;
 
 function save() { localStorage.setItem('workoutData', JSON.stringify(data)); }
-function isMobile(){ return window.innerWidth <= 768; }
-function resetContentScroll(){ const c=document.getElementById('items-container'); if(c) c.scrollTo({top:0,left:0,behavior:'auto'}); }
-function resetMenuScroll(){ const list=document.getElementById('menu-list'); if(list) list.scrollTo({top:0,left:0,behavior:'auto'}); }
-function updateMobileLogo(){ const text = document.querySelector('#mobile-logo .mobile-logo-text'); if(text) text.textContent = 'Workout'; }
 function uid()  { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
 // ── 테마 ──
@@ -641,7 +644,6 @@ function renderItems() {
     header.innerHTML = '메뉴를 <span>선택</span>하세요';
     addBtn.disabled = mobileAdd.disabled = true;
     container.innerHTML = `<div id="empty-state"><div class="empty-box"><div class="icon">🏋️</div><p>좌측 메뉴에서 카테고리를 선택하거나<br/><b>메뉴 추가</b>로 새로운 운동을 시작해보세요.</p></div></div>`;
-    updateMobileLogo();
     return;
   }
 
@@ -652,7 +654,6 @@ function renderItems() {
   const items = data.items[activeMenuId] || [];
   if (items.length === 0) {
     container.innerHTML = `<div id="empty-state"><div class="empty-box"><div class="icon">📝</div><p>아직 기록이 없어요.<br/><b>기록 추가</b> 버튼을 눌러보세요!</p></div></div>`;
-    updateMobileLogo();
     return;
   }
 
@@ -697,22 +698,23 @@ function renderItems() {
 
   container.innerHTML = '';
   container.appendChild(grid);
-  updateMobileLogo();
 }
 
 function linkDisplay(url) {
   return `<div class="link-display"><span class="link-icon">🔗</span><a href="${escAttr(url)}" target="_blank" rel="noopener">${escHtml(url)}</a></div>`;
 }
 
-function selectMenu(id, opts = {}) {
+function resetContentScroll() {
+  const container = document.getElementById('items-container');
+  if (container) container.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function selectMenu(id) {
   activeMenuId = id;
   renderMenus();
   renderItems();
-  updateMobileLogo();
-  if (opts.resetScroll !== false) {
-    resetContentScroll();
-    if (isMobile()) resetMenuScroll();
-  }
+  resetContentScroll();
 }
 
 // ── 메뉴 CRUD ──
@@ -745,9 +747,9 @@ function saveMenu() {
   }
   save();
   renderMenus();
-  selectMenu(activeMenuId, { resetScroll: true });
-  updateMobileLogo();
-  resetMenuScroll();
+  renderItems();
+  const list = document.getElementById('menu-list');
+  if (list) list.scrollTop = 0;
   resetContentScroll();
   closeModal('modal-menu');
 }
@@ -756,10 +758,8 @@ function deleteMenu(id) {
   data.menus = data.menus.filter(m => m.id !== id);
   delete data.items[id];
   if (activeMenuId === id) activeMenuId = data.menus.length > 0 ? data.menus[0].id : null;
-  save(); renderMenus(); renderItems(); updateMobileLogo(); resetContentScroll();
-  if (isMobile()) closeSidebar();
+  save(); renderMenus(); renderItems(); resetContentScroll();
 }
-
 
 // ── 기록 CRUD ──
 let editingItemId = null;
@@ -795,7 +795,7 @@ function saveItem() {
   } else {
     data.items[activeMenuId].push({ id: uid(), title, link, memo });
   }
-  save(); renderItems(); resetContentScroll(); closeModal('modal-item');
+  save(); renderItems(); closeModal('modal-item'); resetContentScroll();
 }
 function deleteItem(id) {
   if (!confirm('이 기록을 삭제할까요?')) return;
@@ -828,8 +828,6 @@ function escAttr(s) { return escHtml(s); }
 if (data.menus.length > 0) activeMenuId = data.menus[0].id;
 renderMenus();
 renderItems();
-updateMobileLogo();
-window.addEventListener('resize', () => { updateMobileLogo(); closeSidebar(); });
 </script>
 </body>
 </html>
