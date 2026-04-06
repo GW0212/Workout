@@ -566,22 +566,40 @@ textarea:focus-visible,
 
 /* ══ 반응형 ══ */
 @media(max-width:768px){
-  html,body{height:auto;overflow:auto;}
-  body{flex-direction:column;}
+  html,body{height:auto;overflow-x:hidden;overflow-y:auto;width:100%;max-width:100%;}
+  body{flex-direction:column;position:relative;}
   #mobile-header{display:flex;}
-  #sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);z-index:150; box-shadow:var(--shadow);}
+  #sidebar{
+    position:fixed;top:0;left:0;bottom:0;
+    width:min(82vw,320px);min-width:min(82vw,320px);max-width:min(82vw,320px);
+    transform:translateX(calc(-100% - 14px));
+    z-index:150;box-shadow:var(--shadow);
+    border-right:1px solid var(--border2);
+  }
   #sidebar.open{transform:translateX(0);}
   #sidebar-overlay.open{display:block;}
-  #main{margin-top:56px;min-height:calc(100vh - 56px);overflow:visible;}
-  #main-header{padding:12px 14px;min-height:56px;position:sticky;top:56px;}
+  #main{
+    width:100%;max-width:100%;min-width:0;
+    margin-top:56px;min-height:calc(100vh - 56px);
+    overflow:visible;flex:1 1 auto;
+  }
+  #main-header{
+    width:100%;max-width:100%;min-width:0;
+    padding:12px 14px;min-height:56px;position:sticky;top:56px;
+  }
   #main-title{font-size:20px;}
   #btn-add-item{display:none;}
-  #items-container{padding:14px 12px 20px;overflow:visible;flex:none;}
+  #items-container{width:100%;max-width:100%;padding:14px 12px 20px;overflow:visible;flex:none;}
   .items-grid{grid-template-columns:1fr;gap:14px;}
+  .item-card{min-width:0;}
   .item-card:hover{transform:none;box-shadow:0 10px 26px rgba(0,0,0,.22);}
   .modal{padding:22px 18px;border-radius:18px;}
   .modal-overlay{padding:12px;}
 }
+body.sidebar-open{overflow:hidden;}
+body.sidebar-open #main{pointer-events:none;user-select:none;}
+body.sidebar-open #mobile-header{pointer-events:auto;}
+
 @media(max-width:480px){
   #items-container{padding:10px;}
   #main-title{font-size:20px;}
@@ -714,13 +732,20 @@ applyThemeIcons();
 
 // ── 모바일 사이드바 ──
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebar-overlay').classList.toggle('open');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isOpen = sidebar.classList.toggle('open');
+  overlay.classList.toggle('open', isOpen);
+  document.body.classList.toggle('sidebar-open', isOpen && window.innerWidth <= 768);
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebar-overlay').classList.remove('open');
+  document.body.classList.remove('sidebar-open');
 }
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) closeSidebar();
+});
 
 // ── 유튜브 ──
 function isYouTube(url) {
