@@ -59,7 +59,7 @@ a{color:inherit}
 #sidebar-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:var(--accent)}
 .logo-icon{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(255,90,48,.28)}
 #sidebar-sub{margin-top:8px;color:var(--text-muted);font-size:11px;letter-spacing:2.2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
-#menu-list{flex:1;overflow:auto;padding:12px}
+#menu-list{flex:1;overflow:auto;padding:12px 12px 20px}
 #menu-list::-webkit-scrollbar,#items-container::-webkit-scrollbar{width:6px}
 #menu-list::-webkit-scrollbar-thumb,#items-container::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:999px}
 .menu-item{
@@ -76,7 +76,7 @@ a{color:inherit}
 .menu-btn:hover{background:var(--surface4);color:var(--text)}
 .menu-btn.del{background:transparent;border-color:transparent;color:var(--text-muted)}
 .menu-btn.del:hover{background:rgba(255,90,48,.08);border-color:rgba(255,90,48,.2);color:var(--accent)}
-#sidebar-footer{padding:12px;border-top:1px solid var(--border-strong);background:var(--surface);position:relative}
+#sidebar-footer{padding:12px;border-top:1px solid var(--border-strong);background:var(--surface);position:sticky;bottom:0}
 #btn-add-menu{width:100%;height:48px;border-radius:14px;background:var(--surface2);border:1px dashed var(--border-strong);font-weight:700;color:var(--text-sub);cursor:pointer;transition:.18s ease}
 #btn-add-menu:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 
@@ -145,10 +145,11 @@ a{color:inherit}
   #mobile-menu-btn span{display:block;width:18px;height:2px;background:currentColor;border-radius:2px}
   #mobile-add-btn{background:var(--accent);border-color:transparent;color:#fff;box-shadow:0 10px 24px rgba(255,90,48,.22)}
   #sidebar-overlay.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:80}
-  #sidebar{position:fixed;top:var(--mobile-header-h);left:0;height:calc(100dvh - var(--mobile-header-h));width:min(86vw,340px);min-width:0;transform:translateX(-100%);transition:transform .24s ease;box-shadow:16px 0 40px rgba(0,0,0,.32);z-index:90}
+  #sidebar{position:fixed;top:var(--mobile-header-h);left:0;height:calc(100dvh - var(--mobile-header-h));padding-bottom:env(safe-area-inset-bottom);width:min(86vw,340px);min-width:0;transform:translateX(-100%);transition:transform .24s ease;box-shadow:16px 0 40px rgba(0,0,0,.32);z-index:90}
   #sidebar.open{transform:translateX(0)}
   #main{height:100dvh;padding-top:var(--mobile-header-h)}
   #main-header{height:68px;padding:0 14px;position:sticky;top:var(--mobile-header-h);z-index:30;background:var(--surface);border-bottom:1px solid var(--border-strong)}
+  #main-header .hdr-icon-btn{display:none}
   #main-title{font-size:26px}
   #btn-add-item{display:none}
   #items-container{padding:14px 12px 22px}
@@ -157,10 +158,10 @@ a{color:inherit}
   .empty-box .icon{font-size:42px}
   .empty-box h2{font-size:18px}
   .empty-box p{font-size:15px}
-  .items-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .item-card{border-radius:16px}
-  .card-title-bar{padding:10px 10px}
-  .card-title-text{font-size:13px}
+  .items-grid{grid-template-columns:1fr;gap:12px}
+  .item-card{border-radius:16px;max-width:100%;width:100%}
+  .card-title-bar{padding:10px 12px}
+  .card-title-text{font-size:14px}
   .card-body{padding:10px 12px}
   .card-memo{font-size:12px;line-height:1.55}
   .link-display{padding:10px 12px}
@@ -173,11 +174,7 @@ a{color:inherit}
   .modal{border-radius:22px 22px 0 0;padding:22px;max-height:88dvh;overflow:auto}
 }
 @media (max-width: 420px){
-  .items-grid{grid-template-columns:1fr 1fr}
   #main-title{font-size:24px}
-}
-@media (max-width: 360px){
-  .items-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -247,9 +244,9 @@ let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"menus":[],"items":
 if (!Array.isArray(data.menus)) data.menus = [];
 if (!data.items || typeof data.items !== 'object') data.items = {};
 Object.values(data.items).forEach(arr => Array.isArray(arr) && arr.forEach(item => {
-  if (typeof item.title !== 'string') item.title = '';
-  if (typeof item.link !== 'string') item.link = '';
-  if (typeof item.memo !== 'string') item.memo = '';
+  if (typeof item.title !== 'string') item.title = typeof item.name === 'string' ? item.name : '';
+  if (typeof item.link !== 'string') item.link = typeof item.url === 'string' ? item.url : '';
+  if (typeof item.memo !== 'string') item.memo = typeof item.content === 'string' ? item.content : '';
 }));
 let activeMenuId = data.menus[0]?.id || null;
 let editingMenuId = null;
@@ -329,7 +326,13 @@ function renderMenus(){
       </div>`;
     row.querySelector('.menu-btn').addEventListener('click', e => { e.stopPropagation(); openEditMenu(menu.id); });
     row.querySelector('.menu-btn.del').addEventListener('click', e => { e.stopPropagation(); deleteMenu(menu.id); });
-    row.addEventListener('click', () => selectMenu(menu.id, true));
+    const selectNow = (e) => {
+      if (e.target.closest('.menu-actions')) return;
+      e.preventDefault();
+      selectMenu(menu.id, true);
+    };
+    row.addEventListener('touchend', selectNow, {passive:false});
+    row.addEventListener('click', selectNow);
     list.appendChild(row);
   });
 }
@@ -363,7 +366,8 @@ function renderItems(){
   items.forEach((item, index) => {
     const card = document.createElement('div');
     card.className = 'item-card';
-    const title = item.title?.trim() ? `<span class="card-title-text">${escHtml(item.title)}</span>` : `<span class="card-title-text empty">#${String(index+1).padStart(2,'0')}</span>`;
+    const itemTitle = (item.title || item.name || '').trim();
+    const title = itemTitle ? `<span class="card-title-text">${escHtml(itemTitle)}</span>` : `<span class="card-title-text empty">#${String(index+1).padStart(2,'0')}</span>`;
     let media = '';
     if (item.link?.trim()) media = isYouTube(item.link) ? buildYTEmbed(item.link) : '';
     let body = item.memo?.trim() ? `<div class="card-body"><div class="card-memo">${escHtml(item.memo)}</div></div>` : '';
@@ -434,6 +438,7 @@ function saveMenu(){
   closeModal('modal-menu');
   scrollContentTop();
   requestAnimationFrame(scrollMenuTop);
+  if (isMobile()) closeSidebar();
 }
 function deleteMenu(id){
   if (!confirm('메뉴를 삭제하면 안의 기록도 함께 삭제됩니다. 계속할까요?')) return;
@@ -461,9 +466,9 @@ function openEditItem(id){
   if (!item) return;
   editingItemId = id;
   document.getElementById('modal-item-title').innerHTML = '기록 <span class="accent">수정</span>';
-  document.getElementById('input-item-title').value = item.title || '';
-  document.getElementById('input-item-link').value = item.link || '';
-  document.getElementById('input-item-memo').value = item.memo || '';
+  document.getElementById('input-item-title').value = item.title || item.name || '';
+  document.getElementById('input-item-link').value = item.link || item.url || '';
+  document.getElementById('input-item-memo').value = item.memo || item.content || '';
   openModal('modal-item');
   setTimeout(() => document.getElementById('input-item-title').focus(), 50);
 }
@@ -476,9 +481,9 @@ function saveItem(){
   if (!data.items[activeMenuId]) data.items[activeMenuId] = [];
   if (editingItemId) {
     const item = data.items[activeMenuId].find(v => v.id === editingItemId);
-    if (item) { item.title = title; item.link = link; item.memo = memo; }
+    if (item) { item.title = title; item.name = title; item.link = link; item.url = link; item.memo = memo; item.content = memo; }
   } else {
-    data.items[activeMenuId].unshift({ id: uid(), title, link, memo });
+    data.items[activeMenuId].unshift({ id: uid(), title, name:title, link, url:link, memo, content:memo });
   }
   save();
   renderItems();
