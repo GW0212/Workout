@@ -599,11 +599,167 @@ textarea:focus-visible,
 body.sidebar-open{overflow:hidden;}
 body.sidebar-open #main{pointer-events:none;user-select:none;}
 body.sidebar-open #mobile-header{pointer-events:auto;}
+body.modal-open{overflow:hidden;}
 
 @media(max-width:480px){
   #items-container{padding:10px;}
   #main-title{font-size:20px;}
 }
+
+
+/* ══ 모바일 UX 개선 패치 ══ */
+:root{
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+#mobile-header{padding-top:var(--safe-top);height:calc(56px + var(--safe-top));}
+#mobile-logo{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#mobile-logo .mobile-logo-emoji{font-size:20px;line-height:1;flex-shrink:0;}
+#mobile-logo .mobile-logo-text{overflow:hidden;text-overflow:ellipsis;}
+#sidebar-overlay.open{display:block;z-index:140;}
+
+@media(max-width:768px){
+  html,body{
+    min-height:100dvh;
+    height:auto;
+    overflow-x:hidden;
+    overflow-y:auto;
+    width:100%;
+    max-width:100%;
+    overscroll-behavior-y:none;
+  }
+  body{
+    flex-direction:column;
+    position:relative;
+    background:var(--bg);
+  }
+  #sidebar{
+    top:0;
+    left:0;
+    bottom:0;
+    height:100dvh;
+    width:min(86vw, 340px);
+    min-width:min(86vw, 340px);
+    max-width:min(86vw, 340px);
+    padding-top:var(--safe-top);
+    transform:translate3d(calc(-100% - 18px), 0, 0);
+    will-change:transform;
+    overflow:hidden;
+  }
+  #sidebar.open{transform:translate3d(0,0,0);}
+  #sidebar::after{display:none;}
+  #sidebar-header{
+    height:72px;
+    min-height:72px;
+    padding:14px 18px 12px;
+  }
+  #sidebar-footer{
+    padding-bottom:calc(16px + var(--safe-bottom));
+  }
+  #menu-list{
+    padding:10px 10px 14px;
+  }
+  .menu-item{
+    min-height:56px;
+    padding:12px;
+    gap:10px;
+  }
+  .menu-actions{
+    display:flex;
+    opacity:1;
+  }
+  .menu-btn{
+    min-width:44px;
+    height:32px;
+    padding:0 10px;
+  }
+  #main{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    margin-top:calc(56px + var(--safe-top));
+    min-height:calc(100dvh - 56px - var(--safe-top));
+    overflow:visible;
+    flex:1 1 auto;
+  }
+  #main-header{
+    position:sticky;
+    top:calc(56px + var(--safe-top));
+    z-index:40;
+    min-height:56px;
+    height:56px;
+    padding:10px 12px;
+    justify-content:center;
+    border-bottom:1px solid var(--border2);
+  }
+  #main-title{
+    font-size:18px;
+    line-height:1.2;
+    text-align:center;
+    padding:0 40px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #btn-theme{display:none;}
+  #items-container{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    padding:14px 12px calc(22px + var(--safe-bottom));
+    overflow:visible;
+    flex:none;
+  }
+  #empty-state{
+    min-height:calc(100dvh - 56px - var(--safe-top) - 56px - 28px);
+    height:auto;
+    padding:4px 0;
+  }
+  .empty-box{
+    width:100%;
+    max-width:none;
+    padding:28px 20px;
+    border-radius:18px;
+  }
+  .items-grid{
+    grid-template-columns:minmax(0,1fr);
+    gap:14px;
+  }
+  .item-card{
+    width:100%;
+    min-width:0;
+    border-radius:16px;
+  }
+  .card-title-bar{padding:16px 16px 12px;}
+  .card-body{padding:14px 16px 16px;}
+  .card-footer{padding:14px 16px 16px;}
+  .yt-box,.link-display{margin-left:16px;margin-right:16px;}
+  .modal-overlay{
+    align-items:flex-end;
+    padding:0;
+  }
+  .modal{
+    max-width:none;
+    width:100%;
+    border-radius:22px 22px 0 0;
+    padding:22px 18px calc(20px + var(--safe-bottom));
+    animation:mobileSheetIn .22s cubic-bezier(.34,1.2,.64,1);
+  }
+  @keyframes mobileSheetIn{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+  .form-input,.form-textarea,.btn-cancel,.btn-confirm,#btn-add-menu,.hdr-icon-btn,#mobile-add-btn{min-height:44px;}
+  .modal-actions{gap:10px;}
+  .modal-actions > *{flex:1;justify-content:center;}
+}
+
+@media(max-width:480px){
+  #mobile-header{padding-left:12px;padding-right:12px;gap:8px;}
+  #main-header{padding-left:10px;padding-right:10px;}
+  #main-title{font-size:17px;padding:0 28px;}
+  #items-container{padding:12px 10px calc(18px + var(--safe-bottom));}
+  .empty-box{padding:24px 16px;}
+  .modal-title{font-size:18px;}
+}
+
 </style>
 </head>
 <body>
@@ -613,7 +769,7 @@ body.sidebar-open #mobile-header{pointer-events:auto;}
   <button id="btn-menu-toggle" onclick="toggleSidebar()">
     <span></span><span></span><span></span>
   </button>
-  <div id="mobile-logo">💪 Workout</div>
+  <div id="mobile-logo"><span class="mobile-logo-emoji">💪</span><span class="mobile-logo-text">Workout</span></div>
   <button class="hdr-icon-btn" id="btn-theme-m" onclick="toggleTheme()" title="테마 전환">🌙</button>
   <button id="mobile-add-btn" onclick="openAddItem()" disabled>＋</button>
 </div>
@@ -743,9 +899,21 @@ function closeSidebar() {
   document.getElementById('sidebar-overlay').classList.remove('open');
   document.body.classList.remove('sidebar-open');
 }
-window.addEventListener('resize', () => {
-  if (window.innerWidth > 768) closeSidebar();
+
+function handleMobileLayoutReset() {
+  if (window.innerWidth > 768) {
+    closeSidebar();
+  }
+}
+window.addEventListener('resize', handleMobileLayoutReset);
+window.addEventListener('orientationchange', () => setTimeout(handleMobileLayoutReset, 120));
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('touchmove', e => {
+    if (e.target === o) e.preventDefault();
+  }, { passive:false });
 });
+
 
 // ── 유튜브 ──
 function isYouTube(url) {
@@ -954,8 +1122,8 @@ function deleteItem(id) {
 }
 
 // ── 모달 ──
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) { if (window.innerWidth <= 768) closeSidebar(); document.getElementById(id).classList.add('open'); document.body.classList.add('modal-open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); if (!document.querySelector('.modal-overlay.open')) document.body.classList.remove('modal-open'); }
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
 });
