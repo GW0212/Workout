@@ -71,7 +71,13 @@ body:not(.light) .item-card:hover{box-shadow:0 22px 48px rgba(0,0,0,.42), inset 
 }
 #btn-menu-toggle:hover{background:var(--surface3);}
 #btn-menu-toggle span{display:block;width:16px;height:2px;background:currentColor;border-radius:2px;}
-#mobile-logo{font-family:'Pretendard',sans-serif;font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.2px;flex:1;}
+#mobile-title{
+  position:absolute;left:72px;right:108px;top:50%;transform:translateY(-50%);
+  font-family:'Pretendard',sans-serif;font-size:20px;font-weight:800;color:var(--text);
+  letter-spacing:-.3px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#mobile-title.has-menu{color:var(--accent);}
+#mobile-actions{margin-left:auto;display:flex;align-items:center;gap:8px;position:relative;z-index:1;}
 
 /* ══ 공통 아이콘 버튼 ══ */
 .hdr-icon-btn{
@@ -629,9 +635,6 @@ body.modal-open{overflow:hidden;}
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 #mobile-header{padding-top:var(--safe-top);height:calc(56px + var(--safe-top));}
-#mobile-logo{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#mobile-logo .mobile-logo-emoji{font-size:20px;line-height:1;flex-shrink:0;}
-#mobile-logo .mobile-logo-text{overflow:hidden;text-overflow:ellipsis;}
 #sidebar-overlay.open{display:block;z-index:140;}
 
 @media(max-width:768px){
@@ -650,17 +653,17 @@ body.modal-open{overflow:hidden;}
     background:var(--bg);
   }
   #sidebar{
-    top:calc(56px + var(--safe-top) + 8px);
+    top:calc(56px + var(--safe-top));
     left:0;
-    bottom:12px;
+    bottom:0;
     height:auto;
     width:min(86vw, 340px);
     min-width:min(86vw, 340px);
     max-width:min(86vw, 340px);
     padding-top:0;
-    border-top-right-radius:18px;
-    border-bottom-right-radius:18px;
-    transform:translate3d(calc(-100% - 18px), 0, 0);
+    border-top-right-radius:0;
+    border-bottom-right-radius:0;
+    transform:translate3d(calc(-100% - 8px), 0, 0);
     will-change:transform;
     overflow:hidden;
   }
@@ -670,9 +673,6 @@ body.modal-open{overflow:hidden;}
     height:72px;
     min-height:72px;
     padding:14px 18px 12px;
-  }
-  #sidebar-footer{
-    padding-bottom:calc(16px + var(--safe-bottom));
   }
   #sidebar-footer{
     padding-bottom:calc(16px + var(--safe-bottom));
@@ -718,7 +718,7 @@ body.modal-open{overflow:hidden;}
     width:100%;
     max-width:100%;
     min-width:0;
-    padding:0 12px calc(22px + var(--safe-bottom));
+    padding:16px 12px calc(22px + var(--safe-bottom));
     overflow:visible;
     flex:none;
   }
@@ -772,10 +772,11 @@ body.modal-open{overflow:hidden;}
 
 @media(max-width:480px){
   #mobile-header{padding-left:12px;padding-right:12px;gap:8px;}
-  #sidebar{top:calc(56px + var(--safe-top) + 6px);bottom:10px;width:min(88vw, 340px);min-width:min(88vw, 340px);max-width:min(88vw, 340px);}
+  #mobile-title{left:66px;right:96px;font-size:18px;}
+  #sidebar{top:calc(56px + var(--safe-top));bottom:0;width:min(88vw, 340px);min-width:min(88vw, 340px);max-width:min(88vw, 340px);}
   #main-header{padding-left:10px;padding-right:10px;}
   #main-title{font-size:17px;padding:0 28px;}
-  #items-container{padding:0 10px calc(18px + var(--safe-bottom));}
+  #items-container{padding:14px 10px calc(18px + var(--safe-bottom));}
   .content-title-block{margin:0 -10px 14px; min-height:60px; padding:15px 10px;}
   .content-title-text{font-size:17px;}
   #empty-state{padding-top:0;}
@@ -792,9 +793,11 @@ body.modal-open{overflow:hidden;}
   <button id="btn-menu-toggle" onclick="toggleSidebar()">
     <span></span><span></span><span></span>
   </button>
-  <div id="mobile-logo"><span class="mobile-logo-emoji">💪</span><span class="mobile-logo-text">Workout</span></div>
-  <button class="hdr-icon-btn" id="btn-theme-m" onclick="toggleTheme()" title="테마 전환">🌙</button>
-  <button id="mobile-add-btn" onclick="openAddItem()" disabled>＋</button>
+  <div id="mobile-title">Workout</div>
+  <div id="mobile-actions">
+    <button class="hdr-icon-btn" id="btn-theme-m" onclick="toggleTheme()" title="테마 전환">🌙</button>
+    <button id="mobile-add-btn" onclick="openAddItem()" disabled>＋</button>
+  </div>
 </div>
 
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
@@ -876,6 +879,38 @@ Object.values(data.items).forEach(arr => arr.forEach(item => { if(!item.title) i
 
 let activeMenuId = null;
 
+function getActiveMenu() {
+  return data.menus.find(m => m.id === activeMenuId) || null;
+}
+
+function updateTitles() {
+  const menu = getActiveMenu();
+  const desktopTitle = document.getElementById('main-title');
+  const mobileTitle = document.getElementById('mobile-title');
+  if (menu) {
+    desktopTitle.innerHTML = `<span>${escHtml(menu.name)}</span>`;
+    mobileTitle.textContent = menu.name;
+    mobileTitle.classList.add('has-menu');
+  } else {
+    desktopTitle.innerHTML = '메뉴를 <span>선택</span>하세요';
+    mobileTitle.textContent = 'Workout';
+    mobileTitle.classList.remove('has-menu');
+  }
+}
+
+function resetContentScroll() {
+  const container = document.getElementById('items-container');
+  if (container) container.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function resetMenuScroll(forceTop = false) {
+  const list = document.getElementById('menu-list');
+  if (list && (forceTop || window.innerWidth <= 768)) list.scrollTop = 0;
+}
+
 function save() { localStorage.setItem('workoutData', JSON.stringify(data)); }
 function uid()  { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
@@ -916,6 +951,7 @@ function toggleSidebar() {
   const isOpen = sidebar.classList.toggle('open');
   overlay.classList.toggle('open', isOpen);
   document.body.classList.toggle('sidebar-open', isOpen && window.innerWidth <= 768);
+  if (isOpen) resetMenuScroll(true);
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
@@ -990,19 +1026,18 @@ function buildContentTitle(titleHtml) {
 
 function renderItems() {
   const container = document.getElementById('items-container');
-  const header    = document.getElementById('main-title');
   const addBtn    = document.getElementById('btn-add-item');
   const mobileAdd = document.getElementById('mobile-add-btn');
 
+  updateTitles();
+
   if (!activeMenuId) {
-    header.innerHTML = '메뉴를 <span>선택</span>하세요';
     addBtn.disabled = mobileAdd.disabled = true;
     container.innerHTML = `<div id="empty-state"><div class="empty-box"><div class="icon">🏋️</div><p>좌측 메뉴에서 카테고리를 선택하거나<br/><b>메뉴 추가</b>로 새로운 운동을 시작해보세요.</p></div></div>`;
     return;
   }
 
   const menu = data.menus.find(m => m.id === activeMenuId);
-  header.innerHTML = `<span>${escHtml(menu.name)}</span>`;
   addBtn.disabled = mobileAdd.disabled = false;
 
   const items = data.items[activeMenuId] || [];
@@ -1062,9 +1097,8 @@ function selectMenu(id) {
   activeMenuId = id;
   renderMenus();
   renderItems();
-  const container = document.getElementById('items-container');
-  if (container) container.scrollTop = 0;
-  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  resetMenuScroll(true);
+  resetContentScroll();
 }
 
 // ── 메뉴 CRUD ──
@@ -1096,9 +1130,8 @@ function saveMenu() {
     activeMenuId = id;
   }
   save(); renderMenus(); renderItems(); closeModal('modal-menu');
-  const list = document.getElementById('menu-list'); if (list) list.scrollTop = 0;
-  const container = document.getElementById('items-container'); if (container) container.scrollTop = 0;
-  window.scrollTo({ top: 0, behavior: 'auto' });
+  resetMenuScroll(true);
+  resetContentScroll();
   showToast(editingMenuId ? '메뉴를 수정했습니다.' : '새 메뉴를 추가했습니다.');
 }
 function deleteMenu(id) {
@@ -1145,12 +1178,14 @@ function saveItem() {
     data.items[activeMenuId].push({ id: uid(), title, link, memo });
   }
   save(); renderItems(); closeModal('modal-item');
+  resetContentScroll();
   showToast(editingItemId ? '기록을 수정했습니다.' : '기록을 저장했습니다.');
 }
 function deleteItem(id) {
   if (!confirm('이 기록을 삭제할까요?')) return;
   data.items[activeMenuId] = (data.items[activeMenuId] || []).filter(x => x.id !== id);
   save(); renderItems();
+  resetContentScroll();
   showToast('기록을 삭제했습니다.');
 }
 
