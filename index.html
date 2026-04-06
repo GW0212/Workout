@@ -62,7 +62,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 }
 #btn-menu-toggle:hover{background:var(--surface3);}
 #btn-menu-toggle span{display:block;width:16px;height:2px;background:currentColor;border-radius:2px;}
-#mobile-logo{font-family:'Pretendard',sans-serif;font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.2px;flex:1;}
+#mobile-logo{font-family:'Pretendard',sans-serif;font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.2px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* ══ 공통 아이콘 버튼 ══ */
 .hdr-icon-btn{
@@ -464,13 +464,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     min-height:calc(100dvh - 74px - env(safe-area-inset-bottom,0px));
     overflow:auto;
   }
-  #main-header{
-    position:static;
-    top:auto;
-    min-height:84px;
-    padding:22px 16px;
-    border-bottom:1px solid var(--border2);
-  }
+  #main-header{display:none;}
   #main-title{font-size:28px;text-align:center;}
   #btn-theme{display:none;}
   #btn-add-item{display:none;}
@@ -607,16 +601,18 @@ let activeMenuId = null;
 function isMobile(){ return window.matchMedia('(max-width: 768px)').matches; }
 function resetMainScroll(){ const main=document.getElementById('main'); const items=document.getElementById('items-container'); main.scrollTop=0; items.scrollTop=0; window.scrollTo(0,0); }
 function updateHeaderLabels(){
-  const mobileLogo=document.getElementById('mobile-logo');
-  if(mobileLogo) mobileLogo.textContent='💪 Workout';
   const selected=data.menus.find(m=>m.id===activeMenuId);
+  const mobileLogo=document.getElementById('mobile-logo');
+  if(mobileLogo){
+    mobileLogo.textContent = selected ? `💪 ${selected.name}` : '💪 Workout';
+  }
   const titleEl=document.getElementById('main-title');
   if(titleEl){
     if(selected) titleEl.textContent = selected.name;
     else titleEl.innerHTML = '메뉴를 <span>선택</span>하세요';
   }
   const sidebarText=document.getElementById('sidebar-logo-text');
-  if(sidebarText){ sidebarText.textContent = isMobile() && selected ? selected.name : 'WORKOUT'; }
+  if(sidebarText){ sidebarText.textContent = 'WORKOUT'; }
 }
 
 function save() { localStorage.setItem('workoutData', JSON.stringify(data)); }
