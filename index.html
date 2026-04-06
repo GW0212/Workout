@@ -240,6 +240,21 @@ body:not(.light) .item-card:hover{box-shadow:0 22px 48px rgba(0,0,0,.42), inset 
 #items-container::-webkit-scrollbar{width:4px;}
 #items-container::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
 
+
+.content-title-block{
+  display:flex;align-items:center;justify-content:center;
+  min-height:72px;padding:18px 16px;
+  border-top:1px solid var(--border2);
+  border-bottom:1px solid var(--border2);
+  background:linear-gradient(180deg, rgba(255,255,255,.012), transparent), rgba(10,12,16,.35);
+  margin:-28px -28px 20px;
+}
+.content-title-text{
+  font-family:'Pretendard',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.4px;
+  color:var(--text);text-align:center;
+}
+.content-title-text span{color:var(--accent);}
+
 /* ══ 빈 상태 ══ */
 #empty-state{
   display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
@@ -688,16 +703,7 @@ body.modal-open{overflow:hidden;}
     overflow:visible;
     flex:1 1 auto;
   }
-  #main-header{
-    position:sticky;
-    top:calc(56px + var(--safe-top));
-    z-index:40;
-    min-height:56px;
-    height:56px;
-    padding:10px 12px;
-    justify-content:center;
-    border-bottom:1px solid var(--border2);
-  }
+  #main-header{display:none;}
   #main-title{
     font-size:18px;
     line-height:1.2;
@@ -712,14 +718,20 @@ body.modal-open{overflow:hidden;}
     width:100%;
     max-width:100%;
     min-width:0;
-    padding:14px 12px calc(22px + var(--safe-bottom));
+    padding:0 12px calc(22px + var(--safe-bottom));
     overflow:visible;
     flex:none;
   }
+  .content-title-block{
+    min-height:64px;
+    padding:16px 12px;
+    margin:0 -12px 16px;
+  }
+  .content-title-text{font-size:18px;}
   #empty-state{
     min-height:auto;
     height:auto;
-    padding:14px 0 0;
+    padding:0;
     justify-content:flex-start;
   }
   .empty-box{
@@ -763,8 +775,10 @@ body.modal-open{overflow:hidden;}
   #sidebar{top:calc(56px + var(--safe-top) + 6px);bottom:10px;width:min(88vw, 340px);min-width:min(88vw, 340px);max-width:min(88vw, 340px);}
   #main-header{padding-left:10px;padding-right:10px;}
   #main-title{font-size:17px;padding:0 28px;}
-  #items-container{padding:12px 10px calc(18px + var(--safe-bottom));}
-  #empty-state{padding-top:10px;}
+  #items-container{padding:0 10px calc(18px + var(--safe-bottom));}
+  .content-title-block{margin:0 -10px 14px; min-height:60px; padding:15px 10px;}
+  .content-title-text{font-size:17px;}
+  #empty-state{padding-top:0;}
   .empty-box{padding:24px 16px;}
   .modal-title{font-size:18px;}
 }
@@ -970,6 +984,10 @@ function renderMenus() {
 }
 
 // ── 카드 렌더 ──
+function buildContentTitle(titleHtml) {
+  return `<div class="content-title-block"><div class="content-title-text">${titleHtml}</div></div>`;
+}
+
 function renderItems() {
   const container = document.getElementById('items-container');
   const header    = document.getElementById('main-title');
@@ -1044,6 +1062,9 @@ function selectMenu(id) {
   activeMenuId = id;
   renderMenus();
   renderItems();
+  const container = document.getElementById('items-container');
+  if (container) container.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
 
 // ── 메뉴 CRUD ──
@@ -1070,11 +1091,14 @@ function saveMenu() {
     data.menus.find(m => m.id === editingMenuId).name = name;
   } else {
     const id = uid();
-    data.menus.push({ id, name });
+    data.menus.unshift({ id, name });
     data.items[id] = [];
     activeMenuId = id;
   }
   save(); renderMenus(); renderItems(); closeModal('modal-menu');
+  const list = document.getElementById('menu-list'); if (list) list.scrollTop = 0;
+  const container = document.getElementById('items-container'); if (container) container.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'auto' });
   showToast(editingMenuId ? '메뉴를 수정했습니다.' : '새 메뉴를 추가했습니다.');
 }
 function deleteMenu(id) {
