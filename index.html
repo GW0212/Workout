@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>운동 기록</title>
+
+  <!-- Favicon: SVG dumbbell -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%23ff4e2a' x='0' y='0' width='64' height='64' rx='12'/%3E%3Crect fill='white' x='28' y='26' width='8' height='12' rx='2'/%3E%3Crect fill='white' x='6' y='22' width='6' height='20' rx='3'/%3E%3Crect fill='white' x='52' y='22' width='6' height='20' rx='3'/%3E%3Crect fill='white' x='4' y='27' width='10' height='10' rx='2'/%3E%3Crect fill='white' x='50' y='27' width='10' height='10' rx='2'/%3E%3Crect fill='white' x='12' y='29' width='16' height='6' rx='1'/%3E%3Crect fill='white' x='36' y='29' width='16' height='6' rx='1'/%3E%3C/svg%3E"/>
+
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --bg: #0c0c0c;
+      --surface: #161616;
+      --surface2: #1f1f1f;
+      --surface3: #2a2a2a;
+      --accent: #ff4e2a;
+      --accent2: #ff7a57;
+      --text: #f0f0f0;
+      --text-sub: #888;
+      --text-muted: #555;
+      --border: #2e2e2e;
+      --border-bright: #3a3a3a;
+      --red: #ff3b30;
+      --green: #30d158;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: 240px;
+      min-width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+      z-index: 10;
+    }
+    #sidebar-header {
+      padding: 20px 16px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    #sidebar-logo {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 26px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    #sidebar-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    #menu-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 8px;
+    }
+    #menu-list::-webkit-scrollbar { width: 4px; }
+    #menu-list::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .15s;
+      position: relative;
+      group: true;
+    }
+    .menu-item:hover { background: var(--surface2); }
+    .menu-item.active {
+      background: rgba(255,78,42,.14);
+    }
+    .menu-item.active .menu-name { color: var(--accent); }
+    .menu-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .menu-item.active .menu-dot { background: var(--accent); }
+    .menu-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-sub);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .menu-actions {
+      display: none;
+      gap: 2px;
+    }
+    .menu-item:hover .menu-actions { display: flex; }
+    .menu-item.active .menu-actions { display: flex; }
+    .menu-btn {
+      padding: 2px 5px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      border-radius: 4px;
+      transition: all .15s;
+    }
+    .menu-btn:hover { background: var(--surface3); color: var(--text); }
+    .menu-btn.del:hover { color: var(--red); }
+
+    #sidebar-footer {
+      padding: 12px 8px;
+      border-top: 1px solid var(--border);
+    }
+    #btn-add-menu {
+      width: 100%;
+      padding: 9px;
+      background: rgba(255,78,42,.1);
+      border: 1px solid rgba(255,78,42,.3);
+      color: var(--accent);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 500;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    #btn-add-menu:hover {
+      background: rgba(255,78,42,.2);
+      border-color: var(--accent);
+    }
+
+    /* ── MAIN ── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    #main-header {
+      padding: 20px 28px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 68px;
+    }
+    #main-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 32px;
+      letter-spacing: 2px;
+      color: var(--text);
+      flex: 1;
+    }
+    #main-title span { color: var(--accent); }
+    #btn-add-item {
+      padding: 9px 18px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 700;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #btn-add-item:hover { background: var(--accent2); transform: translateY(-1px); }
+    #btn-add-item:disabled { opacity: .3; cursor: not-allowed; transform: none; }
+
+    #items-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+    }
+    #items-container::-webkit-scrollbar { width: 5px; }
+    #items-container::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+    /* ── YOUTUBE ── */
+    .yt-box {
+      position: relative;
+      padding-bottom: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    .yt-box > * {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .yt-thumb-layer {
+      cursor: pointer;
+    }
+    .yt-thumb-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity .2s, transform .3s;
+    }
+    .yt-thumb-layer:hover .yt-thumb-img { opacity: .75; transform: scale(1.03); }
+    .yt-play-btn {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 64px; height: 45px;
+      background: #ff0000;
+      border-radius: 12px;
+      pointer-events: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,.6);
+      transition: transform .2s, background .2s;
+    }
+    .yt-thumb-layer:hover .yt-play-btn {
+      background: #cc0000;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+    .yt-play-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 54%;
+      transform: translate(-50%, -50%);
+      border-left: 20px solid white;
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+    }
+
+/* ── EMPTY STATE ── */
+    #empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 12px;
+      color: var(--text-muted);
+    }
+    #empty-state .icon {
+      font-size: 52px;
+      opacity: .4;
+    }
+    #empty-state p {
+      font-size: 14px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ── ITEM CARDS ── */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 18px;
+    }
+    .item-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color .2s, transform .2s;
+      animation: cardIn .3s ease forwards;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .item-card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-2px);
+    }
+
+    /* YouTube embed */
+    .yt-wrap {
+      position: relative;
+      padding-bottom: 56.25%;
+      background: #000;
+    }
+    .yt-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Normal link display */
+    .link-display {
+      padding: 12px 14px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .link-display a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color .15s;
+    }
+    .link-display a:hover { color: var(--accent); }
+    .link-icon { font-size: 14px; flex-shrink: 0; }
+
+    .card-body {
+      padding: 14px 16px;
+    }
+    .card-memo {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .card-footer {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .card-action-btn {
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: 'Noto Sans KR', sans-serif;
+      transition: all .15s;
+    }
+    .card-action-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border-bright); }
+    .card-action-btn.del:hover { border-color: var(--red); color: var(--red); background: rgba(255,59,48,.08); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-bright);
+      border-radius: 14px;
+      width: 480px;
+      max-width: 92vw;
+      padding: 28px;
+      animation: modalIn .2s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(.95) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-title .accent { color: var(--accent); }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .form-input, .form-textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      padding: 10px 12px;
+      transition: border-color .15s;
+      outline: none;
+    }
+    .form-input:focus, .form-textarea:focus {
+      border-color: var(--accent);
+    }
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 22px;
+    }
+    .btn-cancel {
+      padding: 9px 18px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Noto Sans KR', sans-serif;
+      transition: all .15s;
+    }
+    .btn-cancel:hover { border-color: var(--border-bright); color: var(--text); }
+    .btn-confirm {
+      padding: 9px 22px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 700;
+      transition: all .2s;
+    }
+    .btn-confirm:hover { background: var(--accent2); }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <div id="sidebar-logo">💪 WORKOUT</div>
+    <div id="sidebar-sub">Training Log</div>
+  </div>
+  <div id="menu-list"></div>
+  <div id="sidebar-footer">
+    <button id="btn-add-menu">＋ 메뉴 추가</button>
+  </div>
+</div>
+
+<!-- ── MAIN AREA ── -->
+<div id="main">
+  <div id="main-header">
+    <div id="main-title">메뉴를 <span>선택</span>하세요</div>
+    <button id="btn-add-item" disabled>＋ 기록 추가</button>
+  </div>
+  <div id="items-container">
+    <div id="empty-state">
+      <div class="icon">🏋️</div>
+      <p>좌측 메뉴에서 카테고리를 선택하거나<br/>새로운 메뉴를 추가해보세요.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: 메뉴 추가/수정 ── -->
+<div class="modal-overlay" id="modal-menu">
+  <div class="modal">
+    <div class="modal-title" id="modal-menu-title">메뉴 <span class="accent">추가</span></div>
+    <div class="form-group">
+      <label class="form-label">메뉴 이름</label>
+      <input class="form-input" id="input-menu-name" type="text" placeholder="예: 가슴 운동, 하체 루틴..."/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-menu')">취소</button>
+      <button class="btn-confirm" id="btn-menu-confirm">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: 아이템 추가/수정 ── -->
+<div class="modal-overlay" id="modal-item">
+  <div class="modal">
+    <div class="modal-title" id="modal-item-title">기록 <span class="accent">추가</span></div>
+    <div class="form-group">
+      <label class="form-label">링크 (선택)</label>
+      <input class="form-input" id="input-item-link" type="url" placeholder="https://www.youtube.com/watch?v=..."/>
+      <p class="form-hint">유튜브 링크를 넣으면 광고 없이 영상이 재생됩니다 🎬</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">메모</label>
+      <textarea class="form-textarea" id="input-item-memo" placeholder="세트, 무게, 느낀 점 등 자유롭게 기록..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-item')">취소</button>
+      <button class="btn-confirm" id="btn-item-confirm">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let data = JSON.parse(localStorage.getItem('workoutData') || '{"menus":[],"items":{}}');
+let activeMenuId = null;
+
+function save() {
+  localStorage.setItem('workoutData', JSON.stringify(data));
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+// ── YOUTUBE ──
+function isYouTube(url) {
+  return /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)/i.test(url);
+}
+function getYouTubeId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([^&\s]+)/,
+    /(?:youtu\.be\/)([^?\s]+)/,
+    /(?:youtube\.com\/shorts\/)([^?\s]+)/
+  ];
+  for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+  return null;
+}
+
+function buildYTEmbed(url) {
+  const id = getYouTubeId(url);
+  if (!id) return null;
+  const wid = 'yt' + Date.now() + Math.random().toString(36).slice(2,6);
+  return `<div class="yt-box" id="${wid}">
+  <div class="yt-thumb-layer" onclick="ytPlay('${wid}','${id}')">
+    <img class="yt-thumb-img"
+      src="https://img.youtube.com/vi/${id}/hqdefault.jpg"
+      onerror="this.src='https://img.youtube.com/vi/${id}/mqdefault.jpg'" alt=""/>
+    <div class="yt-play-btn"></div>
+  </div>
+</div>`;
+}
+
+function ytPlay(wid, videoId) {
+  const box = document.getElementById(wid);
+  if (!box) return;
+  box.innerHTML =
+    '<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;"' +
+    ' src="https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0&modestbranding=1&playsinline=1"' +
+    ' allow="autoplay;encrypted-media;picture-in-picture;fullscreen"' +
+    ' allowfullscreen></iframe>';
+}
+
+// ── RENDER SIDEBAR ──
+function renderMenus() {
+  const list = document.getElementById('menu-list');
+  list.innerHTML = '';
+  data.menus.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'menu-item' + (m.id === activeMenuId ? ' active' : '');
+    div.innerHTML = `
+      <div class="menu-dot"></div>
+      <div class="menu-name">${escHtml(m.name)}</div>
+      <div class="menu-actions">
+        <button class="menu-btn" title="이름 수정" onclick="event.stopPropagation(); openEditMenu('${m.id}')">✏️</button>
+        <button class="menu-btn del" title="삭제" onclick="event.stopPropagation(); deleteMenu('${m.id}')">🗑</button>
+      </div>`;
+    div.addEventListener('click', () => selectMenu(m.id));
+    list.appendChild(div);
+  });
+}
+
+// ── RENDER ITEMS ──
+function renderItems() {
+  const container = document.getElementById('items-container');
+  const header = document.getElementById('main-title');
+  const addBtn = document.getElementById('btn-add-item');
+
+  if (!activeMenuId) {
+    header.innerHTML = '메뉴를 <span>선택</span>하세요';
+    addBtn.disabled = true;
+    container.innerHTML = `<div id="empty-state"><div class="icon">🏋️</div><p>좌측 메뉴에서 카테고리를 선택하거나<br/>새로운 메뉴를 추가해보세요.</p></div>`;
+    return;
+  }
+
+  const menu = data.menus.find(m => m.id === activeMenuId);
+  header.innerHTML = `<span>${escHtml(menu.name)}</span>`;
+  addBtn.disabled = false;
+
+  const items = data.items[activeMenuId] || [];
+  if (items.length === 0) {
+    container.innerHTML = `<div id="empty-state"><div class="icon">📝</div><p>아직 기록이 없어요.<br/>오른쪽 상단 <b>기록 추가</b> 버튼을 눌러보세요!</p></div>`;
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'items-grid';
+
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'item-card';
+
+    let topHtml = '';
+    if (item.link) {
+      if (isYouTube(item.link)) {
+        topHtml = buildYTEmbed(item.link) || linkDisplay(item.link);
+      } else {
+        topHtml = linkDisplay(item.link);
+      }
+    }
+
+    const memoHtml = item.memo
+      ? `<div class="card-body"><div class="card-memo">${escHtml(item.memo)}</div></div>` : '';
+
+    card.innerHTML = `
+      ${topHtml}
+      ${memoHtml}
+      <div class="card-footer">
+        <button class="card-action-btn" onclick="openEditItem('${item.id}')">✏️ 수정</button>
+        <button class="card-action-btn del" onclick="deleteItem('${item.id}')">🗑 삭제</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(grid);
+}
+
+function linkDisplay(url) {
+  return `<div class="link-display"><span class="link-icon">🔗</span><a href="${escAttr(url)}" target="_blank" rel="noopener">${escHtml(url)}</a></div>`;
+}
+
+// ── ACTIONS ──
+function selectMenu(id) {
+  activeMenuId = id;
+  renderMenus();
+  renderItems();
+}
+
+// Menu CRUD
+let editingMenuId = null;
+function openAddMenu() {
+  editingMenuId = null;
+  document.getElementById('modal-menu-title').innerHTML = '메뉴 <span class="accent">추가</span>';
+  document.getElementById('input-menu-name').value = '';
+  openModal('modal-menu');
+  setTimeout(() => document.getElementById('input-menu-name').focus(), 100);
+}
+function openEditMenu(id) {
+  editingMenuId = id;
+  const m = data.menus.find(x => x.id === id);
+  document.getElementById('modal-menu-title').innerHTML = '메뉴 <span class="accent">수정</span>';
+  document.getElementById('input-menu-name').value = m.name;
+  openModal('modal-menu');
+  setTimeout(() => document.getElementById('input-menu-name').focus(), 100);
+}
+function saveMenu() {
+  const name = document.getElementById('input-menu-name').value.trim();
+  if (!name) { document.getElementById('input-menu-name').focus(); return; }
+  if (editingMenuId) {
+    data.menus.find(m => m.id === editingMenuId).name = name;
+  } else {
+    const id = uid();
+    data.menus.push({ id, name });
+    if (!data.items[id]) data.items[id] = [];
+    activeMenuId = id;
+  }
+  save(); renderMenus(); renderItems();
+  closeModal('modal-menu');
+}
+function deleteMenu(id) {
+  if (!confirm('메뉴를 삭제하면 안에 있는 기록도 모두 삭제됩니다. 계속하시겠어요?')) return;
+  data.menus = data.menus.filter(m => m.id !== id);
+  delete data.items[id];
+  if (activeMenuId === id) activeMenuId = null;
+  save(); renderMenus(); renderItems();
+}
+
+// Item CRUD
+let editingItemId = null;
+function openAddItem() {
+  if (!activeMenuId) return;
+  editingItemId = null;
+  document.getElementById('modal-item-title').innerHTML = '기록 <span class="accent">추가</span>';
+  document.getElementById('input-item-link').value = '';
+  document.getElementById('input-item-memo').value = '';
+  openModal('modal-item');
+  setTimeout(() => document.getElementById('input-item-link').focus(), 100);
+}
+function openEditItem(id) {
+  editingItemId = id;
+  const item = (data.items[activeMenuId] || []).find(x => x.id === id);
+  document.getElementById('modal-item-title').innerHTML = '기록 <span class="accent">수정</span>';
+  document.getElementById('input-item-link').value = item.link || '';
+  document.getElementById('input-item-memo').value = item.memo || '';
+  openModal('modal-item');
+}
+function saveItem() {
+  const link = document.getElementById('input-item-link').value.trim();
+  const memo = document.getElementById('input-item-memo').value.trim();
+  if (!link && !memo) return;
+  if (!data.items[activeMenuId]) data.items[activeMenuId] = [];
+  if (editingItemId) {
+    const item = data.items[activeMenuId].find(x => x.id === editingItemId);
+    item.link = link; item.memo = memo;
+  } else {
+    data.items[activeMenuId].push({ id: uid(), link, memo });
+  }
+  save(); renderItems();
+  closeModal('modal-item');
+}
+function deleteItem(id) {
+  if (!confirm('이 기록을 삭제할까요?')) return;
+  data.items[activeMenuId] = (data.items[activeMenuId] || []).filter(x => x.id !== id);
+  save(); renderItems();
+}
+
+// ── MODAL HELPERS ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// Enter key shortcuts
+document.getElementById('input-menu-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveMenu();
+  if (e.key === 'Escape') closeModal('modal-menu');
+});
+document.getElementById('input-item-memo').addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal('modal-item');
+});
+
+// Buttons
+document.getElementById('btn-add-menu').addEventListener('click', openAddMenu);
+document.getElementById('btn-add-item').addEventListener('click', openAddItem);
+document.getElementById('btn-menu-confirm').addEventListener('click', saveMenu);
+document.getElementById('btn-item-confirm').addEventListener('click', saveItem);
+
+// ── ESCAPE HELPERS ──
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(str) { return escHtml(str); }
+
+// ── INIT ──
+renderMenus();
+renderItems();
+</script>
+</body>
+</html>
