@@ -242,8 +242,9 @@ body:not(.light) .item-card:hover{box-shadow:0 22px 48px rgba(0,0,0,.42), inset 
 
 /* ══ 빈 상태 ══ */
 #empty-state{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  height:100%;gap:16px;animation:fadeUp .4s ease;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  height:100%;min-height:100%;gap:16px;animation:fadeUp .4s ease;
+  padding-top:28px;
 }
 .empty-box{
   background:linear-gradient(180deg, rgba(255,255,255,.015), transparent), var(--surface);
@@ -634,14 +635,16 @@ body.modal-open{overflow:hidden;}
     background:var(--bg);
   }
   #sidebar{
-    top:0;
+    top:calc(56px + var(--safe-top) + 8px);
     left:0;
-    bottom:0;
-    height:100dvh;
+    bottom:12px;
+    height:auto;
     width:min(86vw, 340px);
     min-width:min(86vw, 340px);
     max-width:min(86vw, 340px);
-    padding-top:var(--safe-top);
+    padding-top:0;
+    border-top-right-radius:18px;
+    border-bottom-right-radius:18px;
     transform:translate3d(calc(-100% - 18px), 0, 0);
     will-change:transform;
     overflow:hidden;
@@ -652,6 +655,9 @@ body.modal-open{overflow:hidden;}
     height:72px;
     min-height:72px;
     padding:14px 18px 12px;
+  }
+  #sidebar-footer{
+    padding-bottom:calc(16px + var(--safe-bottom));
   }
   #sidebar-footer{
     padding-bottom:calc(16px + var(--safe-bottom));
@@ -711,9 +717,10 @@ body.modal-open{overflow:hidden;}
     flex:none;
   }
   #empty-state{
-    min-height:calc(100dvh - 56px - var(--safe-top) - 56px - 28px);
+    min-height:auto;
     height:auto;
-    padding:4px 0;
+    padding:14px 0 0;
+    justify-content:flex-start;
   }
   .empty-box{
     width:100%;
@@ -753,9 +760,11 @@ body.modal-open{overflow:hidden;}
 
 @media(max-width:480px){
   #mobile-header{padding-left:12px;padding-right:12px;gap:8px;}
+  #sidebar{top:calc(56px + var(--safe-top) + 6px);bottom:10px;width:min(88vw, 340px);min-width:min(88vw, 340px);max-width:min(88vw, 340px);}
   #main-header{padding-left:10px;padding-right:10px;}
   #main-title{font-size:17px;padding:0 28px;}
   #items-container{padding:12px 10px calc(18px + var(--safe-bottom));}
+  #empty-state{padding-top:10px;}
   .empty-box{padding:24px 16px;}
   .modal-title{font-size:18px;}
 }
