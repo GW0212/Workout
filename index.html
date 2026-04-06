@@ -479,7 +479,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
   .items-grid{grid-template-columns:1fr;gap:14px;}
   .item-card{width:100%;border-radius:22px;overflow:hidden;}
   .item-card::before{width:0;display:none;}
-  .card-title-bar{padding:14px 18px;justify-content:flex-start;}
+  .card-title-bar{padding:14px 18px;justify-content:center;}
   .card-title-text{font-size:18px;}
   .yt-box{padding-bottom:125%;}
   .card-body{padding:14px 16px;}
@@ -596,7 +596,7 @@ Object.values(data.items).forEach(arr => arr.forEach(item => {
   item.link = item.link || item.url || '';
 }));
 
-let activeMenuId = null;
+let activeMenuId = localStorage.getItem('workoutActiveMenuId') || null;
 
 function isMobile(){ return window.matchMedia('(max-width: 768px)').matches; }
 function resetMainScroll(){ const main=document.getElementById('main'); const items=document.getElementById('items-container'); main.scrollTop=0; items.scrollTop=0; window.scrollTo(0,0); }
@@ -755,8 +755,10 @@ function linkDisplay(url) {
 
 function selectMenu(id) {
   activeMenuId = id;
+  localStorage.setItem('workoutActiveMenuId', id);
   renderMenus();
   renderItems();
+  updateHeaderLabels();
   resetMainScroll();
 }
 
@@ -787,6 +789,7 @@ function saveMenu() {
     data.menus.unshift({ id, name });
     data.items[id] = [];
     activeMenuId = id;
+    localStorage.setItem('workoutActiveMenuId', id);
   }
   save(); renderMenus(); renderItems(); closeModal('modal-menu');
   const list=document.getElementById('menu-list'); if(list) list.scrollTop=0; resetMainScroll(); if(isMobile()) closeSidebar();
@@ -796,7 +799,8 @@ function deleteMenu(id) {
   data.menus = data.menus.filter(m => m.id !== id);
   delete data.items[id];
   if (activeMenuId === id) activeMenuId = data.menus.length > 0 ? data.menus[0].id : null;
-  save(); renderMenus(); renderItems();
+  if (activeMenuId) localStorage.setItem('workoutActiveMenuId', activeMenuId); else localStorage.removeItem('workoutActiveMenuId');
+  save(); renderMenus(); renderItems(); updateHeaderLabels();
 }
 
 // ── 기록 CRUD ──
@@ -863,8 +867,15 @@ document.getElementById('btn-item-confirm').addEventListener('click', saveItem);
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(s) { return escHtml(s); }
 
-// ── 초기화: 첫 번째 메뉴 자동 선택 ──
-if (data.menus.length > 0) activeMenuId = data.menus[0].id;
+// ── 초기화: 마지막 선택 메뉴 복원, 없으면 첫 번째 메뉴 선택 ──
+if (data.menus.length > 0) {
+  const exists = data.menus.some(m => m.id === activeMenuId);
+  if (!exists) activeMenuId = data.menus[0].id;
+  localStorage.setItem('workoutActiveMenuId', activeMenuId);
+} else {
+  activeMenuId = null;
+  localStorage.removeItem('workoutActiveMenuId');
+}
 renderMenus();
 renderItems();
 updateHeaderLabels();
