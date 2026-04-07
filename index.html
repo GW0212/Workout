@@ -893,6 +893,7 @@ document.getElementById('btn-item-confirm').addEventListener('click', saveItem);
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(s) { return escHtml(s); }
 
+
 let reorderCleanup = null;
 let suppressClickUntil = 0;
 function isInteractiveTarget(el){
@@ -904,39 +905,62 @@ function moveArrayByIds(sourceArr, orderedIds, idKey='id'){
 }
 function setupLongPressSortable(container, itemSelector, onReorder){
   if(!container) return () => {};
+
   let pressTimer = null;
-  let state = null;
+  let drag = null;
+  const LONG_PRESS_MS = 280;
 
-  const clearPressTimer = () => { if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; } };
+  const clearTimer = () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  };
 
-  function cleanupDrag(commit){
-    clearPressTimer();
-    if(!state) return;
-    document.body.classList.remove('sorting');
-    document.removeEventListener('pointermove', onPointerMove, {passive:false});
-    document.removeEventListener('pointerup', onPointerUp, true);
-    document.removeEventListener('pointercancel', onPointerUp, true);
-    const {item, placeholder, ghost, moved} = state;
-    if(ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost);
-    item.classList.remove('drag-source');
-    item.style.visibility = '';
-    if(placeholder && placeholder.parentNode){
-      placeholder.parentNode.replaceChild(item, placeholder);
-    }
-    if(commit && moved){
-      const orderedIds = [...container.querySelectorAll(itemSelector)].map(el => el.dataset.id).filter(Boolean);
-      onReorder(orderedIds);
-      suppressClickUntil = Date.now() + 400;
-    }
-    state = null;
+  function buildPlaceholder(item){
+    const ph = document.createElement(item.tagName.toLowerCase());
+    ph.className = 'sort-placeholder';
+    ph.style.height = item.offsetHeight + 'px';
+    ph.style.width = item.offsetWidth + 'px';
+    ph.style.borderRadius = getComputedStyle(item).borderRadius;
+    return ph;
   }
 
-  function startDrag(item, startEvent){
+  function stopDrag(commit){
+    clearTimer();
+    if(!drag) return;
+
+    document.body.classList.remove('sorting');
+    document.removeEventListener('pointermove', onPointerMove, true);
+    document.removeEventListener('pointerup', onPointerUp, true);
+    document.removeEventListener('pointercancel', onPointerUp, true);
+
+    const { item, placeholder, ghost, moved } = drag;
+
+    if(ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost);
+
+    if(placeholder && placeholder.parentNode){
+      placeholder.parentNode.insertBefore(item, placeholder);
+      placeholder.parentNode.removeChild(placeholder);
+    }
+
+    item.style.display = '';
+    item.classList.remove('drag-source');
+
+    if(commit && moved){
+      const orderedIds = [...container.querySelectorAll(`:scope > ${itemSelector}`)]
+        .map(el => el.dataset.id)
+        .filter(Boolean);
+      onReorder(orderedIds);
+      suppressClickUntil = Date.now() + 500;
+    }
+
+    drag = null;
+  }
+
+  function startDrag(item, e){
     const rect = item.getBoundingClientRect();
-    const placeholder = document.createElement(item.tagName.toLowerCase());
-    placeholder.className = item.className + ' sort-placeholder';
-    placeholder.style.height = rect.height + 'px';
-    placeholder.style.width = rect.width + 'px';
+    const placeholder = buildPlaceholder(item);
     item.parentNode.insertBefore(placeholder, item.nextSibling);
 
     const ghost = item.cloneNode(true);
@@ -947,84 +971,138 @@ function setupLongPressSortable(container, itemSelector, onReorder){
     ghost.style.top = rect.top + 'px';
     document.body.appendChild(ghost);
 
+    item.style.display = 'none';
     item.classList.add('drag-source');
-    item.style.visibility = 'hidden';
     document.body.classList.add('sorting');
 
-    state = {
-      item, placeholder, ghost,
-      pointerId: startEvent.pointerId,
-      offsetX: startEvent.clientX - rect.left,
-      offsetY: startEvent.clientY - rect.top,
+    drag = {
+      item,
+      placeholder,
+      ghost,
+      pointerId: e.pointerId,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
       moved: false,
-      container
+      layout: container.classList.contains('items-grid') ? 'grid' : 'list'
     };
 
-    document.addEventListener('pointermove', onPointerMove, {passive:false});
+    document.addEventListener('pointermove', onPointerMove, true);
     document.addEventListener('pointerup', onPointerUp, true);
     document.addEventListener('pointercancel', onPointerUp, true);
   }
 
-  function onPointerMove(e){
-    if(!state || e.pointerId !== state.pointerId) return;
-    e.preventDefault();
-    state.moved = true;
-    state.ghost.style.left = (e.clientX - state.offsetX) + 'px';
-    state.ghost.style.top = (e.clientY - state.offsetY) + 'px';
+  function placeInList(clientY){
+    const siblings = [...container.querySelectorAll(`:scope > ${itemSelector}`)].filter(el => el !== drag.item);
+    if(!siblings.length){
+      container.appendChild(drag.placeholder);
+      return;
+    }
 
-    const items = [...container.querySelectorAll(itemSelector)].filter(el => el !== state.item && el !== state.placeholder);
     let inserted = false;
-    for(const el of items){
+    for(const el of siblings){
       const r = el.getBoundingClientRect();
-      const before = e.clientY < r.top + r.height / 2;
-      if(e.clientY >= r.top && e.clientY <= r.bottom){
-        container.insertBefore(state.placeholder, before ? el : el.nextSibling);
+      if(clientY < r.top + r.height / 2){
+        container.insertBefore(drag.placeholder, el);
         inserted = true;
         break;
       }
     }
-    if(!inserted && items.length){
-      const firstRect = items[0].getBoundingClientRect();
-      const lastRect = items[items.length-1].getBoundingClientRect();
-      if(e.clientY < firstRect.top) container.insertBefore(state.placeholder, items[0]);
-      else if(e.clientY > lastRect.bottom) container.appendChild(state.placeholder);
+    if(!inserted) container.appendChild(drag.placeholder);
+  }
+
+  function placeInGrid(clientX, clientY){
+    const siblings = [...container.querySelectorAll(`:scope > ${itemSelector}`)].filter(el => el !== drag.item);
+    if(!siblings.length){
+      container.appendChild(drag.placeholder);
+      return;
     }
 
-    const scrollEl = container;
-    const cr = scrollEl.getBoundingClientRect();
+    let best = null;
+    let bestDist = Infinity;
+    for(const el of siblings){
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dx = clientX - cx;
+      const dy = clientY - cy;
+      const dist = dx*dx + dy*dy;
+      if(dist < bestDist){
+        bestDist = dist;
+        best = el;
+      }
+    }
+
+    if(!best){
+      container.appendChild(drag.placeholder);
+      return;
+    }
+
+    const r = best.getBoundingClientRect();
+    const before = clientY < r.top + r.height / 2 || (Math.abs(clientY - (r.top + r.height/2)) < r.height * 0.2 && clientX < r.left + r.width / 2);
+    container.insertBefore(drag.placeholder, before ? best : best.nextSibling);
+  }
+
+  function maybeAutoScroll(clientY){
+    const scroller = container;
+    const r = scroller.getBoundingClientRect();
     const edge = 56;
-    if(e.clientY < cr.top + edge) scrollEl.scrollTop -= 18;
-    else if(e.clientY > cr.bottom - edge) scrollEl.scrollTop += 18;
+    if(clientY < r.top + edge) scroller.scrollTop -= 18;
+    else if(clientY > r.bottom - edge) scroller.scrollTop += 18;
+  }
+
+  function onPointerMove(e){
+    if(!drag || e.pointerId !== drag.pointerId) return;
+    e.preventDefault();
+    drag.moved = true;
+
+    drag.ghost.style.left = (e.clientX - drag.offsetX) + 'px';
+    drag.ghost.style.top = (e.clientY - drag.offsetY) + 'px';
+
+    if(drag.layout === 'grid') placeInGrid(e.clientX, e.clientY);
+    else placeInList(e.clientY);
+
+    maybeAutoScroll(e.clientY);
   }
 
   function onPointerUp(e){
-    if(pressTimer){ clearPressTimer(); return; }
-    if(!state || e.pointerId !== state.pointerId) return;
+    if(pressTimer){ clearTimer(); return; }
+    if(!drag || e.pointerId !== drag.pointerId) return;
     e.preventDefault();
-    cleanupDrag(true);
+    e.stopPropagation();
+    stopDrag(true);
   }
 
   function onPointerDown(e){
-    if(e.button && e.button !== 0) return;
-    if(Date.now() < suppressClickUntil) { e.preventDefault(); return; }
+    if((e.button ?? 0) !== 0) return;
+    if(Date.now() < suppressClickUntil){ e.preventDefault(); return; }
+
     const item = e.target.closest(itemSelector);
     if(!item || !container.contains(item) || isInteractiveTarget(e.target)) return;
-    clearPressTimer();
-    pressTimer = setTimeout(() => { pressTimer = null; startDrag(item, e); }, 260);
+
+    clearTimer();
+    pressTimer = setTimeout(() => {
+      pressTimer = null;
+      startDrag(item, e);
+    }, LONG_PRESS_MS);
   }
 
-  function cancelPending(){ clearPressTimer(); }
-  function onClickCapture(e){ if(Date.now() < suppressClickUntil) { e.stopPropagation(); e.preventDefault(); } }
+  function cancelPending(){ clearTimer(); }
+  function onClickCapture(e){
+    if(Date.now() < suppressClickUntil){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
 
-  container.addEventListener('pointerdown', onPointerDown, {passive:true});
+  container.addEventListener('pointerdown', onPointerDown, { passive: true });
   container.addEventListener('pointerup', cancelPending, true);
   container.addEventListener('pointerleave', cancelPending, true);
   container.addEventListener('pointercancel', cancelPending, true);
   container.addEventListener('click', onClickCapture, true);
 
   return () => {
-    cleanupDrag(false);
-    container.removeEventListener('pointerdown', onPointerDown, {passive:true});
+    stopDrag(false);
+    container.removeEventListener('pointerdown', onPointerDown, { passive: true });
     container.removeEventListener('pointerup', cancelPending, true);
     container.removeEventListener('pointerleave', cancelPending, true);
     container.removeEventListener('pointercancel', cancelPending, true);
@@ -1057,7 +1135,6 @@ function attachItemReorder(){
     renderItems();
   });
 }
-
 // ── 초기화: 마지막 선택 메뉴 복원, 없으면 첫 번째 메뉴 선택 ──
 if (data.menus.length > 0) {
   const exists = data.menus.some(m => m.id === activeMenuId);
