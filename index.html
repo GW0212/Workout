@@ -705,7 +705,7 @@ function renderMenus() {
         <button class="menu-btn" onclick="event.stopPropagation();openEditMenu('${m.id}')">수정</button>
         <button class="menu-btn del" onclick="event.stopPropagation();deleteMenu('${m.id}')">삭제</button>
       </div>`;
-    div.addEventListener('click', (e) => { e.preventDefault(); selectMenu(m.id); if(isMobile()) closeSidebar(); });
+    div.addEventListener('click', (e) => { if (document.body.dataset.reordering === '1') return; e.preventDefault(); selectMenu(m.id); if(isMobile()) closeSidebar(); });
     list.appendChild(div);
   });
   attachMenuReorder();
@@ -899,6 +899,18 @@ function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function escAttr(s) { return escHtml(s); }
 
 
+function moveArrayByIds(source, orderedIds){
+  const map = new Map(source.map(item => [String(item.id), item]));
+  const reordered = [];
+  for (const id of orderedIds) {
+    const item = map.get(String(id));
+    if (item) reordered.push(item);
+  }
+  for (const item of source) {
+    if (!orderedIds.includes(String(item.id))) reordered.push(item);
+  }
+  return reordered;
+}
 
 let menuSortable = null;
 let itemSortable = null;
@@ -926,10 +938,12 @@ function attachMenuReorder(){
     dragClass: 'sort-drag-item',
     filter: '.menu-btn, .menu-actions',
     preventOnFilter: false,
+    onStart: function(){ document.body.dataset.reordering = '1'; },
     onMove: function(evt){
       return !!evt.related || !!evt.to;
     },
     onEnd: function(){
+      setTimeout(()=>{ delete document.body.dataset.reordering; }, 50);
       const orderedIds = [...list.querySelectorAll('.menu-item')].map(el => el.dataset.id).filter(Boolean);
       if(orderedIds.length !== data.menus.length) {
         renderMenus();
@@ -961,7 +975,9 @@ function attachItemReorder(){
     dragClass: 'sort-drag-item',
     filter: '.card-action-btn, .yt-thumb-layer, iframe, a, button',
     preventOnFilter: false,
+    onStart: function(){ document.body.dataset.reordering = '1'; },
     onEnd: function(){
+      setTimeout(()=>{ delete document.body.dataset.reordering; }, 50);
       const items = data.items[activeMenuId] || [];
       const orderedIds = [...grid.querySelectorAll('.item-card')].map(el => el.dataset.id).filter(Boolean);
       if(orderedIds.length !== items.length) {
