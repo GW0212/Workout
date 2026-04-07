@@ -519,7 +519,8 @@ body.dragging-reorder{user-select:none;-webkit-user-select:none;overflow:hidden;
   margin:0!important;transform:none!important;
   opacity:.96;box-shadow:0 22px 44px rgba(0,0,0,.45),0 0 0 1px rgba(255,78,42,.28);
 }
-.menu-item.drag-source,.item-card.drag-source{opacity:.12;}
+.menu-item.drag-source,.item-card.drag-source{opacity:.12;pointer-events:none;}
+.menu-item.drag-source.reorder-hidden,.item-card.drag-source.reorder-hidden{display:none !important;}
 @media(max-width:768px){
   .menu-item.reorder-placeholder{min-height:64px;}
   .item-card.reorder-placeholder{min-height:260px;}
@@ -709,7 +710,7 @@ function renderMenus() {
         <button class="menu-btn" onclick="event.stopPropagation();openEditMenu('${m.id}')">수정</button>
         <button class="menu-btn del" onclick="event.stopPropagation();deleteMenu('${m.id}')">삭제</button>
       </div>`;
-    div.addEventListener('click', (e) => { e.preventDefault(); selectMenu(m.id); if(isMobile()) closeSidebar(); });
+    div.addEventListener('click', (e) => { if(Date.now() < reorderState.suppressClickUntil || reorderState.timer || reorderState.active) { e.preventDefault(); e.stopPropagation(); return; } e.preventDefault(); selectMenu(m.id); if(isMobile()) closeSidebar(); });
     list.appendChild(div);
   });
 }
@@ -882,7 +883,7 @@ function deleteItem(id) {
 // ── 롱클릭 정렬 ──
 const reorderState = {
   active:false, type:null, pointerId:null, startX:0, startY:0, offsetX:0, offsetY:0,
-  sourceEl:null, ghostEl:null, placeholder:null, sourceId:null, timer:null
+  sourceEl:null, ghostEl:null, placeholder:null, sourceId:null, timer:null, suppressClickUntil:0
 };
 const LONG_PRESS_MS = 320;
 const MOVE_CANCEL_PX = 10;
@@ -928,11 +929,11 @@ function startReorder(target, type, point){
   reorderState.offsetY = point.y - rect.top;
 
   const placeholder = target.cloneNode(false);
-  placeholder.className = target.className + ' reorder-placeholder';
+  placeholder.className = target.className.replace(/\bactive\b/g, '').trim() + ' reorder-placeholder';
   placeholder.innerHTML = '';
   placeholder.style.height = rect.height + 'px';
   if(type==='menu') placeholder.style.minHeight = rect.height + 'px';
-  target.parentNode.insertBefore(placeholder, target.nextSibling);
+  target.parentNode.insertBefore(placeholder, target);
   reorderState.placeholder = placeholder;
 
   const ghost = target.cloneNode(true);
@@ -944,7 +945,9 @@ function startReorder(target, type, point){
   document.body.appendChild(ghost);
   reorderState.ghostEl = ghost;
 
-  target.classList.add('drag-source');
+  target.classList.add('drag-source','reorder-hidden');
+  target.style.display = 'none';
+  reorderState.suppressClickUntil = Date.now() + 500;
   document.body.classList.add('dragging-reorder');
   moveReorderGhost(point.x, point.y);
 }
@@ -960,7 +963,7 @@ function commitReorder(){
   const container = getContainerForType(reorderState.type);
   const selector = reorderState.type==='menu' ? '.menu-item' : '.item-card';
   if(!container || !reorderState.placeholder){ cleanupReorder(); return; }
-  const order = Array.from(container.querySelectorAll(selector + ', .reorder-placeholder')).map(el => {
+  const order = Array.from(container.children).filter(el => el !== reorderState.sourceEl).map(el => {
     if(el === reorderState.placeholder) return reorderState.sourceId;
     return reorderState.type==='menu' ? el.dataset.menuId : el.dataset.itemId;
   }).filter(Boolean);
@@ -980,7 +983,7 @@ function commitReorder(){
 
 function cleanupReorder(){
   clearReorderTimer();
-  if(reorderState.sourceEl) reorderState.sourceEl.classList.remove('drag-source');
+  if(reorderState.sourceEl){ reorderState.sourceEl.classList.remove('drag-source','reorder-hidden'); reorderState.sourceEl.style.display=''; }
   if(reorderState.ghostEl && reorderState.ghostEl.parentNode) reorderState.ghostEl.parentNode.removeChild(reorderState.ghostEl);
   if(reorderState.placeholder && reorderState.placeholder.parentNode) reorderState.placeholder.parentNode.removeChild(reorderState.placeholder);
   document.body.classList.remove('dragging-reorder');
@@ -1033,6 +1036,13 @@ function handlePointerUp(){
   if(reorderState.timer && !reorderState.active){ clearReorderTimer(); return; }
   if(reorderState.active) commitReorder();
 }
+
+document.addEventListener('click', function(event){
+  if(Date.now() < reorderState.suppressClickUntil){
+    event.preventDefault();
+    event.stopPropagation();
+  }
+}, true);
 
 document.addEventListener('pointerdown', scheduleReorderStart, {passive:true});
 document.addEventListener('pointermove', handlePointerMove, {passive:false});
