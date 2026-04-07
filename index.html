@@ -448,6 +448,10 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 .menu-item.sort-placeholder{min-height:48px;}
 .item-card.sort-placeholder{min-height:180px;}
 .drag-source{opacity:.18;}
+.sort-ghost-item{opacity:.45 !important;border:2px dashed var(--accent) !important;background:var(--surface2) !important;}
+.sort-chosen-item{transform:scale(.985);}
+.sort-drag-item{opacity:.92;}
+
 body.sorting{user-select:none;-webkit-user-select:none;touch-action:none;}
 body.sorting iframe{pointer-events:none;}
 
@@ -524,6 +528,7 @@ body.sorting iframe{pointer-events:none;}
 .menu-item, .menu-btn, .card-action-btn, #btn-add-menu, #btn-add-item, #mobile-add-btn, #btn-menu-toggle{touch-action:manipulation;}
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 </head>
 <body>
 
@@ -894,247 +899,82 @@ function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function escAttr(s) { return escHtml(s); }
 
 
-let reorderCleanup = null;
-let suppressClickUntil = 0;
-function isInteractiveTarget(el){
-  return !!el.closest('button,a,input,textarea,select,label,iframe,.menu-actions,.card-footer,.yt-thumb-layer');
-}
-function moveArrayByIds(sourceArr, orderedIds, idKey='id'){
-  const map = new Map(sourceArr.map(item => [item[idKey], item]));
-  return orderedIds.map(id => map.get(id)).filter(Boolean);
-}
-function setupLongPressSortable(container, itemSelector, onReorder){
-  if(!container) return () => {};
 
-  let pressTimer = null;
-  let drag = null;
-  const LONG_PRESS_MS = 280;
+let menuSortable = null;
+let itemSortable = null;
 
-  const clearTimer = () => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      pressTimer = null;
-    }
-  };
-
-  function buildPlaceholder(item){
-    const ph = document.createElement(item.tagName.toLowerCase());
-    ph.className = 'sort-placeholder';
-    ph.style.height = item.offsetHeight + 'px';
-    ph.style.width = item.offsetWidth + 'px';
-    ph.style.borderRadius = getComputedStyle(item).borderRadius;
-    return ph;
-  }
-
-  function stopDrag(commit){
-    clearTimer();
-    if(!drag) return;
-
-    document.body.classList.remove('sorting');
-    document.removeEventListener('pointermove', onPointerMove, true);
-    document.removeEventListener('pointerup', onPointerUp, true);
-    document.removeEventListener('pointercancel', onPointerUp, true);
-
-    const { item, placeholder, ghost, moved } = drag;
-
-    if(ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost);
-
-    if(placeholder && placeholder.parentNode){
-      placeholder.parentNode.insertBefore(item, placeholder);
-      placeholder.parentNode.removeChild(placeholder);
-    }
-
-    item.style.display = '';
-    item.classList.remove('drag-source');
-
-    if(commit && moved){
-      const orderedIds = [...container.querySelectorAll(`:scope > ${itemSelector}`)]
-        .map(el => el.dataset.id)
-        .filter(Boolean);
-      onReorder(orderedIds);
-      suppressClickUntil = Date.now() + 500;
-    }
-
-    drag = null;
-  }
-
-  function startDrag(item, e){
-    const rect = item.getBoundingClientRect();
-    const placeholder = buildPlaceholder(item);
-    item.parentNode.insertBefore(placeholder, item.nextSibling);
-
-    const ghost = item.cloneNode(true);
-    ghost.classList.add('sort-ghost');
-    ghost.style.width = rect.width + 'px';
-    ghost.style.height = rect.height + 'px';
-    ghost.style.left = rect.left + 'px';
-    ghost.style.top = rect.top + 'px';
-    document.body.appendChild(ghost);
-
-    item.style.display = 'none';
-    item.classList.add('drag-source');
-    document.body.classList.add('sorting');
-
-    drag = {
-      item,
-      placeholder,
-      ghost,
-      pointerId: e.pointerId,
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-      moved: false,
-      layout: container.classList.contains('items-grid') ? 'grid' : 'list'
-    };
-
-    document.addEventListener('pointermove', onPointerMove, true);
-    document.addEventListener('pointerup', onPointerUp, true);
-    document.addEventListener('pointercancel', onPointerUp, true);
-  }
-
-  function placeInList(clientY){
-    const siblings = [...container.querySelectorAll(`:scope > ${itemSelector}`)].filter(el => el !== drag.item);
-    if(!siblings.length){
-      container.appendChild(drag.placeholder);
-      return;
-    }
-
-    let inserted = false;
-    for(const el of siblings){
-      const r = el.getBoundingClientRect();
-      if(clientY < r.top + r.height / 2){
-        container.insertBefore(drag.placeholder, el);
-        inserted = true;
-        break;
-      }
-    }
-    if(!inserted) container.appendChild(drag.placeholder);
-  }
-
-  function placeInGrid(clientX, clientY){
-    const siblings = [...container.querySelectorAll(`:scope > ${itemSelector}`)].filter(el => el !== drag.item);
-    if(!siblings.length){
-      container.appendChild(drag.placeholder);
-      return;
-    }
-
-    let best = null;
-    let bestDist = Infinity;
-    for(const el of siblings){
-      const r = el.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      const dx = clientX - cx;
-      const dy = clientY - cy;
-      const dist = dx*dx + dy*dy;
-      if(dist < bestDist){
-        bestDist = dist;
-        best = el;
-      }
-    }
-
-    if(!best){
-      container.appendChild(drag.placeholder);
-      return;
-    }
-
-    const r = best.getBoundingClientRect();
-    const before = clientY < r.top + r.height / 2 || (Math.abs(clientY - (r.top + r.height/2)) < r.height * 0.2 && clientX < r.left + r.width / 2);
-    container.insertBefore(drag.placeholder, before ? best : best.nextSibling);
-  }
-
-  function maybeAutoScroll(clientY){
-    const scroller = container;
-    const r = scroller.getBoundingClientRect();
-    const edge = 56;
-    if(clientY < r.top + edge) scroller.scrollTop -= 18;
-    else if(clientY > r.bottom - edge) scroller.scrollTop += 18;
-  }
-
-  function onPointerMove(e){
-    if(!drag || e.pointerId !== drag.pointerId) return;
-    e.preventDefault();
-    drag.moved = true;
-
-    drag.ghost.style.left = (e.clientX - drag.offsetX) + 'px';
-    drag.ghost.style.top = (e.clientY - drag.offsetY) + 'px';
-
-    if(drag.layout === 'grid') placeInGrid(e.clientX, e.clientY);
-    else placeInList(e.clientY);
-
-    maybeAutoScroll(e.clientY);
-  }
-
-  function onPointerUp(e){
-    if(pressTimer){ clearTimer(); return; }
-    if(!drag || e.pointerId !== drag.pointerId) return;
-    e.preventDefault();
-    e.stopPropagation();
-    stopDrag(true);
-  }
-
-  function onPointerDown(e){
-    if((e.button ?? 0) !== 0) return;
-    if(Date.now() < suppressClickUntil){ e.preventDefault(); return; }
-
-    const item = e.target.closest(itemSelector);
-    if(!item || !container.contains(item) || isInteractiveTarget(e.target)) return;
-
-    clearTimer();
-    pressTimer = setTimeout(() => {
-      pressTimer = null;
-      startDrag(item, e);
-    }, LONG_PRESS_MS);
-  }
-
-  function cancelPending(){ clearTimer(); }
-  function onClickCapture(e){
-    if(Date.now() < suppressClickUntil){
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }
-
-  container.addEventListener('pointerdown', onPointerDown, { passive: true });
-  container.addEventListener('pointerup', cancelPending, true);
-  container.addEventListener('pointerleave', cancelPending, true);
-  container.addEventListener('pointercancel', cancelPending, true);
-  container.addEventListener('click', onClickCapture, true);
-
-  return () => {
-    stopDrag(false);
-    container.removeEventListener('pointerdown', onPointerDown, { passive: true });
-    container.removeEventListener('pointerup', cancelPending, true);
-    container.removeEventListener('pointerleave', cancelPending, true);
-    container.removeEventListener('pointercancel', cancelPending, true);
-    container.removeEventListener('click', onClickCapture, true);
-  };
+function destroySortable(instance){
+  if(instance && typeof instance.destroy === 'function') instance.destroy();
 }
 
 function attachMenuReorder(){
-  if(reorderCleanup?.menus) reorderCleanup.menus();
+  destroySortable(menuSortable);
   const list = document.getElementById('menu-list');
-  reorderCleanup = reorderCleanup || {};
-  reorderCleanup.menus = setupLongPressSortable(list, '.menu-item', (orderedIds) => {
-    if(orderedIds.length !== data.menus.length) return;
-    data.menus = moveArrayByIds(data.menus, orderedIds);
-    save();
-    renderMenus();
+  if(!list || typeof Sortable === 'undefined') return;
+
+  menuSortable = Sortable.create(list, {
+    animation: 180,
+    delay: 260,
+    delayOnTouchOnly: true,
+    touchStartThreshold: 6,
+    forceFallback: true,
+    fallbackOnBody: true,
+    fallbackTolerance: 4,
+    draggable: '.menu-item',
+    ghostClass: 'sort-ghost-item',
+    chosenClass: 'sort-chosen-item',
+    dragClass: 'sort-drag-item',
+    filter: '.menu-btn, .menu-actions',
+    preventOnFilter: false,
+    onMove: function(evt){
+      return !!evt.related || !!evt.to;
+    },
+    onEnd: function(){
+      const orderedIds = [...list.querySelectorAll('.menu-item')].map(el => el.dataset.id).filter(Boolean);
+      if(orderedIds.length !== data.menus.length) {
+        renderMenus();
+        return;
+      }
+      data.menus = moveArrayByIds(data.menus, orderedIds);
+      save();
+      renderMenus();
+    }
   });
 }
 
 function attachItemReorder(){
-  if(reorderCleanup?.items) reorderCleanup.items();
+  destroySortable(itemSortable);
   const grid = document.querySelector('#items-container .items-grid');
-  reorderCleanup = reorderCleanup || {};
-  if(!grid){ reorderCleanup.items = null; return; }
-  reorderCleanup.items = setupLongPressSortable(grid, '.item-card', (orderedIds) => {
-    const items = data.items[activeMenuId] || [];
-    if(orderedIds.length !== items.length) return;
-    data.items[activeMenuId] = moveArrayByIds(items, orderedIds);
-    save();
-    renderItems();
+  if(!grid || typeof Sortable === 'undefined') return;
+
+  itemSortable = Sortable.create(grid, {
+    animation: 180,
+    delay: 260,
+    delayOnTouchOnly: true,
+    touchStartThreshold: 6,
+    forceFallback: true,
+    fallbackOnBody: true,
+    fallbackTolerance: 4,
+    draggable: '.item-card',
+    ghostClass: 'sort-ghost-item',
+    chosenClass: 'sort-chosen-item',
+    dragClass: 'sort-drag-item',
+    filter: '.card-action-btn, .yt-thumb-layer, iframe, a, button',
+    preventOnFilter: false,
+    onEnd: function(){
+      const items = data.items[activeMenuId] || [];
+      const orderedIds = [...grid.querySelectorAll('.item-card')].map(el => el.dataset.id).filter(Boolean);
+      if(orderedIds.length !== items.length) {
+        renderItems();
+        return;
+      }
+      data.items[activeMenuId] = moveArrayByIds(items, orderedIds);
+      save();
+      renderItems();
+    }
   });
 }
+
 // ── 초기화: 마지막 선택 메뉴 복원, 없으면 첫 번째 메뉴 선택 ──
 if (data.menus.length > 0) {
   const exists = data.menus.some(m => m.id === activeMenuId);
