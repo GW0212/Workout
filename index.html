@@ -2108,6 +2108,102 @@ body.dark .toast-text span{color:#c6d0d6;}
   #tab-scroll{gap:5px!important;}
 }
 
+
+/* ━━ v23: mobile menu actions, logged-in YouTube playback, scroll-to-top ━━ */
+#btn-top{
+  position:fixed;
+  right:24px;
+  bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  z-index:2600;
+  width:48px;
+  height:48px;
+  border-radius:999px;
+  border:1.5px solid rgba(255,78,42,.46);
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+  font-size:23px;
+  font-weight:900;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 16px 38px rgba(255,78,42,.28),0 6px 18px rgba(0,0,0,.12);
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(12px) scale(.94);
+  transition:opacity .18s,transform .18s,box-shadow .18s;
+}
+#btn-top.show{
+  opacity:1;
+  pointer-events:auto;
+  transform:translateY(0) scale(1);
+}
+#btn-top:hover{box-shadow:0 20px 46px rgba(255,78,42,.36),0 8px 22px rgba(0,0,0,.16);transform:translateY(-2px) scale(1.02);}
+body.dark #btn-top{border-color:rgba(255,126,96,.72);box-shadow:0 16px 38px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.10) inset;}
+.yt-open .yt-open-text{white-space:nowrap;}
+@media(max-width:768px){
+  #btn-top{
+    right:16px;
+    bottom:calc(88px + env(safe-area-inset-bottom,0px));
+    width:46px;
+    height:46px;
+    font-size:22px;
+  }
+  .tab.on{
+    max-width:224px!important;
+    padding-right:8px!important;
+  }
+  .tab.on > span:first-child{
+    max-width:72px!important;
+  }
+  .tab.on .tmeta{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    flex:0 0 auto!important;
+    margin-left:1px!important;
+  }
+  .tab.on .tmbtn{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:24px!important;
+    height:24px!important;
+    min-width:24px!important;
+    border-radius:8px!important;
+    border:1px solid var(--border2)!important;
+    background:var(--surface)!important;
+    color:var(--tsub)!important;
+    font-size:11px!important;
+    line-height:1!important;
+  }
+  .tab.on .tmbtn:hover,.tab.on .tmbtn:active{color:var(--accent)!important;border-color:rgba(255,78,42,.5)!important;background:var(--sf2)!important;}
+  .tab.on .tmbtn.del:hover,.tab.on .tmbtn.del:active{color:var(--red)!important;border-color:rgba(255,59,48,.48)!important;background:rgba(255,59,48,.08)!important;}
+  #tab-scroll{
+    contain:layout paint;
+    overscroll-behavior-x:contain;
+  }
+  #tabs,#tab-scroll,.tab,#btn-newtab{
+    backface-visibility:hidden;
+    transform:translateZ(0);
+  }
+  .yt-open,
+  .ytbox.playing .yt-live{
+    height:32px!important;
+    min-height:32px!important;
+    padding:0 12px!important;
+    font-size:11.5px!important;
+    background:rgba(255,78,42,.94)!important;
+  }
+}
+@media(max-width:390px){
+  .tab.on{max-width:208px!important;}
+  .tab.on > span:first-child{max-width:56px!important;}
+  .tab.on .tmbtn{width:23px!important;height:23px!important;min-width:23px!important;}
+}
+
 </style>
 </head>
 <body>
@@ -2265,6 +2361,7 @@ body.dark .toast-text span{color:#c6d0d6;}
 </div>
 
 <div id="center-toast" class="center-toast" role="status" aria-live="polite"></div>
+<button id="btn-top" type="button" onclick="scrollToPageTop(true)" aria-label="최상단으로 이동" title="최상단으로 이동">↑</button>
 
 <script>
 /* ━━ Helpers ━━ */
@@ -2327,32 +2424,80 @@ async function detectYT(url){
 function ytWatchUrl(id,type){
   return type==='shorts' ? `https://www.youtube.com/shorts/${id}` : `https://www.youtube.com/watch?v=${id}`;
 }
-function fallbackThumb(img){
+function thumbCandidates(id,type){
+  if(type==='shorts'){
+    return [
+      `https://i.ytimg.com/vi/${id}/oar2.jpg`,
+      `https://i.ytimg.com/vi/${id}/oardefault.jpg`,
+      `https://i.ytimg.com/vi_webp/${id}/maxresdefault.webp`,
+      `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
+      `https://i.ytimg.com/vi/${id}/hq720.jpg`,
+      `https://i.ytimg.com/vi/${id}/sddefault.jpg`,
+      `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+      `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
+    ];
+  }
+  return [
+    `https://i.ytimg.com/vi_webp/${id}/maxresdefault.webp`,
+    `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
+    `https://i.ytimg.com/vi/${id}/hq720.jpg`,
+    `https://i.ytimg.com/vi/${id}/sddefault.jpg`,
+    `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+    `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
+  ];
+}
+function setThumbStep(img,step){
   const id=img?.dataset?.ytid;
-  if(!id){if(img) img.onerror=null;return;}
-  const candidates=['hq720.jpg','sddefault.jpg','hqdefault.jpg','mqdefault.jpg','default.jpg'];
-  let step=Number(img.dataset.ytstep||0);
-  if(step>=candidates.length){img.onerror=null;return;}
-  img.dataset.ytstep=String(step+1);
-  img.src=`https://i.ytimg.com/vi/${id}/${candidates[step]}`;
+  const type=img?.dataset?.vtype||'longform';
+  if(!id||!img)return false;
+  const candidates=thumbCandidates(id,type);
+  if(step>=candidates.length){img.onerror=null;img.onload=null;return false;}
+  img.dataset.ytstep=String(step);
+  img.src=candidates[step];
+  return true;
+}
+function fallbackThumb(img){
+  const next=Number(img?.dataset?.ytstep||0)+1;
+  setThumbStep(img,next);
+}
+function validateThumb(img){
+  if(!img)return;
+  const type=img.dataset.vtype||'longform';
+  const step=Number(img.dataset.ytstep||0);
+  const minWidth=type==='shorts'?640:720;
+  if(img.naturalWidth&&img.naturalWidth<minWidth&&step<thumbCandidates(img.dataset.ytid,type).length-1){
+    fallbackThumb(img);
+  }
+}
+function isMobilePlayback(){
+  return window.matchMedia('(max-width: 768px)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+}
+function openYouTubeLoggedIn(vid,type='longform'){
+  const url=ytWatchUrl(vid,type);
+  const opened=window.open(url,'_blank','noopener');
+  if(!opened) location.href=url;
 }
 function buildYT(url,ratio,type){
   const id=getId(url); if(!id) return '';
   const wid='yt'+Date.now()+Math.random().toString(36).slice(2,6);
   const vtype=type||((isSh(url)||Number(ratio)>100)?'shorts':'longform');
   const pb=vtype==='shorts'?177.78:56.25;
-  const thumb=`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+  const thumb=thumbCandidates(id,vtype)[0];
   const watch=ytWatchUrl(id,vtype);
   return `<div class="ytbox ${vtype}" id="${wid}" style="padding-bottom:${pb}%" data-ratio="${pb}">
     <div class="ytthumb" onclick="play('${wid}','${id}','${vtype}')">
-      <img class="ytimg" src="${thumb}" data-ytid="${id}" data-ytstep="0"
-           onerror="fallbackThumb(this)" loading="lazy" decoding="async" alt=""/>
-      <a class="yt-open" href="${watch}" target="_blank" rel="noopener" onclick="event.stopPropagation()">▶ YouTube</a>
+      <img class="ytimg" src="${thumb}" data-ytid="${id}" data-vtype="${vtype}" data-ytstep="0"
+           onerror="fallbackThumb(this)" onload="validateThumb(this)" loading="lazy" decoding="async" alt=""/>
+      <a class="yt-open" href="${watch}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><span class="yt-open-text">YouTube 로그인 재생</span></a>
       <div class="ytplay"></div>
     </div>
   </div>`;
 }
 function play(wid,vid,type='longform'){
+  if(isMobilePlayback()){
+    openYouTubeLoggedIn(vid,type);
+    return;
+  }
   const b=document.getElementById(wid);if(!b)return;
   const pb=b.style.paddingBottom;
   const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
@@ -2365,7 +2510,7 @@ function play(wid,vid,type='longform'){
     src="${src}"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-    <a class="yt-open yt-live" href="${watch}" target="_blank" rel="noopener">▶ YouTube</a>`;
+    <a class="yt-open yt-live" href="${watch}" target="_blank" rel="noopener"><span class="yt-open-text">YouTube 로그인 재생</span></a>`;
   b.style.paddingBottom=pb;
 }
 
@@ -2884,11 +3029,22 @@ function showCenterToast(title,detail=''){
   el.classList.add('show');
   centerToastTimer=setTimeout(()=>el.classList.remove('show'),2200);
 }
+function scrollToPageTop(smooth=true){
+  window.scrollTo({top:0,behavior:smooth?'smooth':'auto'});
+}
+function updateTopButton(){
+  const btn=document.getElementById('btn-top');
+  if(!btn)return;
+  btn.classList.toggle('show',(window.scrollY||document.documentElement.scrollTop||0)>160);
+}
+window.addEventListener('scroll',updateTopButton,{passive:true});
+window.addEventListener('resize',updateTopButton,{passive:true});
 function goStartHome(){
   aid=null;
   localStorage.removeItem('workoutActiveMenuId');
   render();
-  window.scrollTo({top:0,behavior:'auto'});
+  scrollToPageTop(false);
+  updateTopButton();
 }
 document.getElementById('logo')?.addEventListener('keydown',e=>{
   if(e.key==='Enter'||e.key===' '){e.preventDefault();goStartHome();}
@@ -3076,7 +3232,12 @@ function renderTabs(){
   const el=sc.querySelector('.tab.on');
   if(el) el.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
 }
-function selMenu(id){aid=id;localStorage.setItem('workoutActiveMenuId',id);render();}
+function selMenu(id){
+  aid=id;
+  localStorage.setItem('workoutActiveMenuId',id);
+  render();
+  requestAnimationFrame(()=>scrollToPageTop(false));
+}
 function emptyHTML(icon,title,sub){
   return `<div class="empty-wrap"><div class="empty-box">
       <span class="eicon">${icon}</span>
@@ -3324,6 +3485,7 @@ document.addEventListener('pointercancel',cleanDrag,{passive:true});
   normalizeMenus();
   save();
   render();
+  updateTopButton();
 })();
 </script>
 </body>
