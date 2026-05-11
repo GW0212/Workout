@@ -1457,6 +1457,81 @@ body.dark .card[data-vtype]:hover{
   background:#000!important;
 }
 
+
+/* ━━ v14: Fix giant oval overlay — keep YouTube shortcut as a small badge only ━━ */
+.ytbox > .ytthumb{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+}
+.ytbox.playing > iframe{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  border:0!important;
+  display:block!important;
+}
+.ytbox > .yt-open,
+.ytbox.playing > .yt-open,
+.ytbox.playing > .yt-live{
+  position:absolute!important;
+  inset:auto 12px 12px auto!important;
+  width:auto!important;
+  height:30px!important;
+  min-width:0!important;
+  min-height:30px!important;
+  max-width:calc(100% - 24px)!important;
+  padding:0 11px!important;
+  border-radius:999px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  z-index:20!important;
+  background:rgba(0,0,0,.56)!important;
+  color:#fff!important;
+  opacity:.9!important;
+  pointer-events:auto!important;
+  box-shadow:0 8px 18px rgba(0,0,0,.24)!important;
+}
+.ytbox > .yt-open:hover,
+.ytbox.playing > .yt-open:hover,
+.ytbox.playing > .yt-live:hover{
+  width:auto!important;
+  height:30px!important;
+  min-height:30px!important;
+  background:rgba(255,78,42,.9)!important;
+  transform:translateY(-1px)!important;
+}
+.card[data-vtype] .ytbox:hover,
+.card[data-vtype] .ytbox.playing:hover{
+  filter:none!important;
+  opacity:1!important;
+}
+.card[data-vtype] .ytbox:hover iframe,
+.card[data-vtype] .ytbox.playing:hover iframe{
+  filter:none!important;
+  opacity:1!important;
+}
+@media(max-width:768px){
+  .ytbox > .yt-open,
+  .ytbox.playing > .yt-open,
+  .ytbox.playing > .yt-live{
+    inset:auto 10px 10px auto!important;
+    height:28px!important;
+    min-height:28px!important;
+    padding:0 9px!important;
+    font-size:11px!important;
+  }
+  .ytbox > .yt-open:hover,
+  .ytbox.playing > .yt-open:hover,
+  .ytbox.playing > .yt-live:hover{
+    height:28px!important;
+    min-height:28px!important;
+  }
+}
+
 </style>
 </head>
 <body>
