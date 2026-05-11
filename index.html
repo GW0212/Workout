@@ -2204,6 +2204,41 @@ body.dark #btn-top{border-color:rgba(255,126,96,.72);box-shadow:0 16px 38px rgba
   .tab.on .tmbtn{width:23px!important;height:23px!important;min-width:23px!important;}
 }
 
+
+
+/* ━━ v24: mobile web iframe playback, visible top button, no double-tap zoom on controls ━━ */
+@media(max-width:768px){
+  #hdr,#logo,#tabs,#tab-scroll,.tab,#btn-newtab,.hbtn,.subtabs-row,.subtabs-panel,.subtab,.content-add,
+  .share-mode-tab,.share-btn,.btn-no,.btn-yes,.cbtn,.tmbtn,.mclose,.ytthumb,.ytplay{
+    touch-action:manipulation!important;
+    -webkit-user-select:none!important;
+    user-select:none!important;
+    -webkit-tap-highlight-color:transparent!important;
+  }
+  #btn-top{
+    display:flex!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    z-index:99999!important;
+    right:18px!important;
+    bottom:calc(112px + env(safe-area-inset-bottom,0px))!important;
+    width:48px!important;
+    height:48px!important;
+    transform:none!important;
+    visibility:visible!important;
+  }
+  #btn-top.show{
+    opacity:1!important;
+    pointer-events:auto!important;
+    transform:none!important;
+    visibility:visible!important;
+  }
+  .yt-open,
+  .ytbox.playing .yt-live{
+    display:none!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2494,10 +2529,6 @@ function buildYT(url,ratio,type){
   </div>`;
 }
 function play(wid,vid,type='longform'){
-  if(isMobilePlayback()){
-    openYouTubeLoggedIn(vid,type);
-    return;
-  }
   const b=document.getElementById(wid);if(!b)return;
   const pb=b.style.paddingBottom;
   const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
@@ -2510,7 +2541,7 @@ function play(wid,vid,type='longform'){
     src="${src}"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-    <a class="yt-open yt-live" href="${watch}" target="_blank" rel="noopener"><span class="yt-open-text">YouTube 로그인 재생</span></a>`;
+    <a class="yt-open yt-live" href="${watch}" target="_blank" rel="noopener"><span class="yt-open-text">YouTube에서 열기</span></a>`;
   b.style.paddingBottom=pb;
 }
 
@@ -3487,6 +3518,29 @@ document.addEventListener('pointercancel',cleanDrag,{passive:true});
   render();
   updateTopButton();
 })();
+
+
+/* ━━ v24: prevent double-tap zoom on mobile chrome / controls ━━ */
+(function preventDoubleTapZoomOnControls(){
+  const targetSelector='#hdr,#logo,#tabs,#tab-scroll,.tab,#btn-newtab,.hbtn,button,.subtabs-row,.subtab,.content-add,.share-mode-tab,.share-btn,.cbtn,.tmbtn,.mclose';
+  let lastTouchEnd=0;
+  document.addEventListener('touchend',function(e){
+    if(!e.target.closest(targetSelector)) return;
+    const now=Date.now();
+    if(now-lastTouchEnd<320){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    lastTouchEnd=now;
+  },{passive:false});
+  document.addEventListener('dblclick',function(e){
+    if(e.target.closest(targetSelector)){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  },{passive:false});
+})();
+
 </script>
 </body>
 </html>
