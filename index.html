@@ -2357,6 +2357,33 @@ body.dark #btn-top{border-color:rgba(255,126,96,.72);box-shadow:0 16px 38px rgba
   }
 }
 
+
+/* ━━ v27: mobile one-tap YouTube playback fix ━━ */
+.ytbox.mobile-embed > iframe{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  border:0!important;
+  display:block!important;
+  background:#000!important;
+}
+.ytbox.mobile-embed::before,
+.ytbox.mobile-embed::after{
+  content:none!important;
+  display:none!important;
+}
+@media(max-width:768px){
+  .ytbox.mobile-embed{
+    overflow:hidden!important;
+    background:#000!important;
+  }
+  .ytbox.mobile-embed iframe{
+    pointer-events:auto!important;
+    touch-action:auto!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2630,13 +2657,41 @@ function openYouTubeLoggedIn(vid,type='longform'){
   const opened=window.open(url,'_blank','noopener');
   if(!opened) location.href=url;
 }
+function ytEmbedSrc(vid,type='longform',autoplay=false){
+  const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
+  const params=[
+    autoplay?'autoplay=1':'autoplay=0',
+    'rel=0',
+    'playsinline=1',
+    'controls=1',
+    'fs=1',
+    'modestbranding=1',
+    'iv_load_policy=3',
+    'enablejsapi=1',
+    `origin=${origin}`
+  ];
+  return `https://www.youtube.com/embed/${vid}?${params.join('&')}`;
+}
 function buildYT(url,ratio,type){
   const id=getId(url); if(!id) return '';
   const wid='yt'+Date.now()+Math.random().toString(36).slice(2,6);
   const vtype=type||((isSh(url)||Number(ratio)>100)?'shorts':'longform');
   const pb=vtype==='shorts'?177.78:56.25;
-  const thumb=thumbCandidates(id,vtype)[0];
   const watch=ytWatchUrl(id,vtype);
+
+  // 모바일에서는 커스텀 썸네일 → iframe 교체 방식이 iOS/Safari에서
+  // 한 번 더 탭해야 재생되는 경우가 있어, 처음부터 YouTube iframe을 노출한다.
+  // 사용자는 공식 플레이어의 재생 버튼을 한 번만 누르면 바로 재생된다.
+  if(isMobilePlayback()){
+    const src=ytEmbedSrc(id,vtype,false);
+    return `<div class="ytbox ${vtype} mobile-embed playing" id="${wid}" style="padding-bottom:${pb}%" data-ratio="${pb}">
+      <iframe src="${src}" title="YouTube video player"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>`;
+  }
+
+  const thumb=thumbCandidates(id,vtype)[0];
   return `<div class="ytbox ${vtype}" id="${wid}" style="padding-bottom:${pb}%" data-ratio="${pb}">
     <div class="ytthumb" onclick="play('${wid}','${id}','${vtype}')">
       <img class="ytimg" src="${thumb}" data-ytid="${id}" data-vtype="${vtype}" data-ytstep="0"
@@ -2649,10 +2704,7 @@ function buildYT(url,ratio,type){
 function play(wid,vid,type='longform'){
   const b=document.getElementById(wid);if(!b)return;
   const pb=b.style.paddingBottom;
-  const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
-  const base=`autoplay=1&rel=0&playsinline=1&modestbranding=1&iv_load_policy=3&enablejsapi=1&origin=${origin}`;
-  const viewMode='controls=1&fs=1';
-  const src=`https://www.youtube.com/embed/${vid}?${base}&${viewMode}`;
+  const src=ytEmbedSrc(vid,type,true);
   const watch=ytWatchUrl(vid,type);
   b.classList.add('playing');
   b.innerHTML=`<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;display:block;"
