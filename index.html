@@ -1899,6 +1899,30 @@ body.dark .share-step{border-color:rgba(255,255,255,.18);background:#151515;}
   .share-mode-tab{font-size:12.5px;}
 }
 
+
+/* ━━ v21: import status message overlap fix ━━ */
+.share-modal #share-msg{
+  position:static!important;
+  bottom:auto!important;
+  z-index:auto!important;
+  margin:12px 0 0!important;
+  clear:both!important;
+}
+#import-area:not([hidden]){
+  margin-bottom:12px!important;
+}
+.share-panel.on{
+  padding-bottom:2px!important;
+}
+@media(max-width:768px){
+  .share-modal #share-msg{
+    margin-top:10px!important;
+  }
+  #import-area:not([hidden]){
+    margin-bottom:10px!important;
+  }
+}
+
 </style>
 </head>
 <body>
