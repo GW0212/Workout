@@ -1404,6 +1404,59 @@ body.dark .yt-open{
   }
 }
 
+
+
+/* ━━ v13: Video clarity fix — remove hover oval/glass overlays from players ━━ */
+.card[data-vtype]::before,
+.card[data-vtype]::after{
+  display:none!important;
+  content:none!important;
+}
+.card[data-vtype]{
+  isolation:isolate;
+}
+.card[data-vtype] .ytbox{
+  position:relative;
+  z-index:4!important;
+  background:#000!important;
+  overflow:hidden;
+  filter:none!important;
+  opacity:1!important;
+}
+.card[data-vtype] .ytbox::before,
+.card[data-vtype] .ytbox::after,
+.card[data-vtype] .ytthumb::before,
+.card[data-vtype] .ytthumb::after{
+  display:none!important;
+  content:none!important;
+}
+.card[data-vtype] .ytimg,
+.card[data-vtype] .ytthumb:hover .ytimg,
+.card[data-vtype] .ytbox iframe{
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.card[data-vtype]:hover{
+  box-shadow:0 18px 44px rgba(20,20,20,.10),0 0 0 2px rgba(255,78,42,.08)!important;
+}
+body.dark .card[data-vtype]:hover{
+  box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 22px 50px rgba(0,0,0,.58),0 0 0 1px rgba(255,126,96,.22)!important;
+}
+.ytbox.playing iframe{
+  z-index:2!important;
+  background:#000!important;
+}
+.ytbox.playing .yt-live{
+  z-index:3!important;
+  opacity:.92!important;
+}
+.ytbox.playing .yt-live:hover{opacity:1!important;}
+.ytbox.shorts.playing,
+.ytbox.longform.playing{
+  background:#000!important;
+}
+
 </style>
 </head>
 <body>
@@ -1560,7 +1613,7 @@ function play(wid,vid,type='longform'){
   const pb=b.style.paddingBottom;
   const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
   const base=`autoplay=1&rel=0&playsinline=1&modestbranding=1&iv_load_policy=3&enablejsapi=1&origin=${origin}`;
-  const viewMode=type==='shorts'?'controls=0&fs=0':'controls=1';
+  const viewMode='controls=1&fs=1';
   const src=`https://www.youtube.com/embed/${vid}?${base}&${viewMode}`;
   const watch=ytWatchUrl(vid,type);
   b.classList.add('playing');
