@@ -1323,6 +1323,87 @@ body.dark .yt-open{
   .card[data-vtype="shorts"] .card-ttl{font-size:12px;}
 }
 
+
+/* ━━ v12: Shorts viewing comfort — larger player, no crop, reduced embedded controls ━━ */
+.grid[data-sub="shorts"]{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),380px))!important;
+  justify-content:center;
+  justify-items:center;
+  align-items:start;
+  gap:24px!important;
+}
+.card[data-vtype="shorts"]{
+  width:100%;
+  max-width:390px;
+}
+.ytbox.shorts{
+  padding-bottom:205%!important;
+}
+.card[data-vtype="shorts"] .ytbox{
+  border-bottom:0;
+}
+.card[data-vtype="shorts"] .ytplay{
+  width:66px;
+  height:46px;
+  border-radius:15px;
+}
+.card[data-vtype="shorts"] .ytplay::after{
+  border-left-width:17px;
+  border-top-width:10px;
+  border-bottom-width:10px;
+}
+.ytbox.shorts.playing{
+  padding-bottom:205%!important;
+  overflow:hidden;
+}
+.ytbox.shorts.playing iframe{
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  transform:none!important;
+}
+.ytbox.playing .yt-live{
+  right:10px;
+  bottom:10px;
+  min-height:28px;
+  padding:0 9px;
+  font-size:11px;
+  opacity:.74;
+}
+.ytbox.playing .yt-live:hover{
+  opacity:1;
+}
+@media(min-width:1180px){
+  .grid[data-sub="shorts"]{
+    grid-template-columns:repeat(auto-fit,minmax(360px,410px))!important;
+  }
+  .card[data-vtype="shorts"]{max-width:410px;}
+}
+@media(max-width:768px){
+  .grid[data-sub="shorts"]{
+    grid-template-columns:minmax(0,1fr)!important;
+    justify-items:center;
+    gap:18px!important;
+  }
+  .card[data-vtype="shorts"]{
+    max-width:430px;
+  }
+  .ytbox.shorts,
+  .ytbox.shorts.playing{
+    padding-bottom:190%!important;
+  }
+  .card[data-vtype="shorts"] .ytplay{
+    width:60px;
+    height:42px;
+  }
+}
+@media(max-width:390px){
+  .ytbox.shorts,
+  .ytbox.shorts.playing{
+    padding-bottom:186%!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1478,12 +1559,16 @@ function play(wid,vid,type='longform'){
   const b=document.getElementById(wid);if(!b)return;
   const pb=b.style.paddingBottom;
   const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
-  const src=`https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1&modestbranding=1&iv_load_policy=3&enablejsapi=1&origin=${origin}`;
+  const base=`autoplay=1&rel=0&playsinline=1&modestbranding=1&iv_load_policy=3&enablejsapi=1&origin=${origin}`;
+  const viewMode=type==='shorts'?'controls=0&fs=0':'controls=1';
+  const src=`https://www.youtube.com/embed/${vid}?${base}&${viewMode}`;
+  const watch=ytWatchUrl(vid,type);
   b.classList.add('playing');
   b.innerHTML=`<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;display:block;"
     src="${src}"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+    allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <a class="yt-open yt-live" href="${watch}" target="_blank" rel="noopener">▶ YouTube</a>`;
   b.style.paddingBottom=pb;
 }
 
