@@ -1274,6 +1274,60 @@ body.dark .yt-open{
   .yt-open{right:10px;bottom:10px;min-height:28px;padding:0 9px;font-size:11px;}
 }
 
+
+
+/* ━━ v10: Shorts title detection + compact Shorts playback/header ━━ */
+.card[data-vtype="shorts"] .card-hd{
+  min-height:44px!important;
+  padding:8px 10px!important;
+  gap:8px;
+}
+.card[data-vtype="shorts"] .card-main{
+  gap:4px;
+}
+.card[data-vtype="shorts"] .type-pill{
+  height:19px;
+  padding:0 7px;
+  font-size:10px;
+}
+.card[data-vtype="shorts"] .card-ttl{
+  font-size:12.5px;
+  line-height:1.25;
+  -webkit-line-clamp:1;
+}
+.card[data-vtype="shorts"] .cbtn{
+  height:24px;
+  padding:0 7px;
+  border-radius:8px;
+  font-size:10px;
+}
+.ytbox.shorts.playing{
+  --shorts-title-crop:68px;
+  overflow:hidden;
+}
+.ytbox.shorts.playing .shorts-frame-crop{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  background:#000;
+}
+.ytbox.shorts.playing .shorts-frame-crop iframe{
+  position:absolute!important;
+  left:0!important;
+  top:calc(-1 * var(--shorts-title-crop))!important;
+  width:100%!important;
+  height:calc(100% + var(--shorts-title-crop))!important;
+  border:0!important;
+}
+@media(max-width:768px){
+  .card[data-vtype="shorts"] .card-hd{
+    min-height:42px!important;
+    padding:7px 9px!important;
+  }
+  .card[data-vtype="shorts"] .card-ttl{font-size:12px;}
+  .ytbox.shorts.playing{--shorts-title-crop:58px;}
+}
+
 </style>
 </head>
 <body>
@@ -1372,18 +1426,38 @@ function videoTypeFromItem(it){
   return 'longform';
 }
 
+async function fetchYTMeta(targetUrls){
+  const urls=[...new Set(targetUrls.filter(Boolean))];
+  for(const target of urls){
+    try{
+      const r=await fetch('https://www.youtube.com/oembed?url='+encodeURIComponent(target)+'&format=json');
+      if(!r.ok) continue;
+      const d=await r.json();
+      if(d&&d.title) return d;
+    }catch(e){}
+  }
+  for(const target of urls){
+    try{
+      const r=await fetch('https://noembed.com/embed?url='+encodeURIComponent(target));
+      if(!r.ok) continue;
+      const d=await r.json();
+      if(d&&d.title) return d;
+    }catch(e){}
+  }
+  return null;
+}
+
 async function detectYT(url){
   const id=getId(url); if(!id) return null;
-  if(isSh(url)) return {type:'shorts',ratio:177.78,id,title:''};
-  try{
-    const r=await fetch('https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v='+id+'&format=json');
-    if(!r.ok) throw new Error('oEmbed failed');
-    const d=await r.json();
-    const ratio=(d.width&&d.height)?(d.height/d.width)*100:56.25;
-    return {type:ratio>100?'shorts':'longform',ratio,id,title:d.title||''};
-  }catch{
-    return {type:'longform',ratio:56.25,id,title:''};
-  }
+  const shortUrl=`https://www.youtube.com/shorts/${id}`;
+  const watchUrl=`https://www.youtube.com/watch?v=${id}`;
+  const youtuUrl=`https://youtu.be/${id}`;
+  const forcedShort=isSh(url);
+  const meta=await fetchYTMeta(forcedShort?[shortUrl,watchUrl,youtuUrl]:[watchUrl,youtuUrl,shortUrl]);
+  const detectedRatio=(meta&&meta.width&&meta.height)?(meta.height/meta.width)*100:null;
+  const type=forcedShort?'shorts':(detectedRatio&&detectedRatio>100?'shorts':'longform');
+  const ratio=type==='shorts'?177.78:(detectedRatio||56.25);
+  return {type,ratio,id,title:(meta&&meta.title)||''};
 }
 
 function ytWatchUrl(id,type){
@@ -1397,7 +1471,7 @@ function buildYT(url,ratio,type){
   const thumb=vtype==='longform'?'hqdefault':'hqdefault';
   const watch=ytWatchUrl(id,vtype);
   return `<div class="ytbox ${vtype}" id="${wid}" style="padding-bottom:${pb}%" data-ratio="${pb}">
-    <div class="ytthumb" onclick="play('${wid}','${id}')">
+    <div class="ytthumb" onclick="play('${wid}','${id}','${vtype}')">
       <img class="ytimg" src="https://img.youtube.com/vi/${id}/${thumb}.jpg"
            onerror="this.src='https://img.youtube.com/vi/${id}/mqdefault.jpg'" alt=""/>
       <a class="yt-open" href="${watch}" target="_blank" rel="noopener" onclick="event.stopPropagation()">▶ YouTube</a>
@@ -1405,14 +1479,23 @@ function buildYT(url,ratio,type){
     </div>
   </div>`;
 }
-function play(wid,vid){
+function play(wid,vid,type='longform'){
   const b=document.getElementById(wid);if(!b)return;
   const pb=b.style.paddingBottom;
   const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
-  b.innerHTML=`<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;"
-    src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1&enablejsapi=1&origin=${origin}"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  const src=`https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1&modestbranding=1&iv_load_policy=3&enablejsapi=1&origin=${origin}`;
+  b.classList.add('playing');
+  if(type==='shorts'){
+    b.innerHTML=`<div class="shorts-frame-crop"><iframe
+      src="${src}"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+  }else{
+    b.innerHTML=`<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;"
+      src="${src}"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  }
   b.style.paddingBottom=pb;
 }
 
