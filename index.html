@@ -432,29 +432,6 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
   background:rgba(0,0,0,.65);backdrop-filter:blur(3px);z-index:90;
 }
 
-
-
-/* ══ 정렬 드래그 ══ */
-.sort-ghost{
-  position:fixed;left:0;top:0;z-index:2000;pointer-events:none;
-  opacity:.95;transform:translate3d(0,0,0) scale(1.02);
-  box-shadow:0 18px 44px rgba(0,0,0,.45);
-}
-.sort-placeholder{
-  border:2px dashed rgba(255,78,42,.55)!important;
-  background:rgba(255,78,42,.08)!important;
-  border-radius:14px;
-}
-.menu-item.sort-placeholder{min-height:48px;}
-.item-card.sort-placeholder{min-height:180px;}
-.drag-source{opacity:.18;}
-.sort-ghost-item{opacity:.45 !important;border:2px dashed var(--accent) !important;background:var(--surface2) !important;}
-.sort-chosen-item{transform:scale(.985);}
-.sort-drag-item{opacity:.92;}
-
-body.sorting{user-select:none;-webkit-user-select:none;touch-action:none;}
-body.sorting iframe{pointer-events:none;}
-
 /* ══ 반응형 ══ */
 @media(max-width:768px){
   html,body{height:100%;overflow:auto;}
@@ -527,8 +504,28 @@ body.sorting iframe{pointer-events:none;}
 #sidebar-logo-text{display:inline-block;}
 .menu-item, .menu-btn, .card-action-btn, #btn-add-menu, #btn-add-item, #mobile-add-btn, #btn-menu-toggle{touch-action:manipulation;}
 
+
+/* 드래그 정렬 */
+body.dragging-reorder{user-select:none;-webkit-user-select:none;overflow:hidden;}
+.reorder-placeholder{
+  border:2px dashed rgba(255,78,42,.45)!important;
+  background:rgba(255,78,42,.08)!important;
+  border-radius:14px;
+}
+.menu-item.reorder-placeholder{min-height:54px;}
+.item-card.reorder-placeholder{min-height:220px;}
+.drag-ghost{
+  position:fixed!important;left:0;top:0;z-index:9999;pointer-events:none;
+  margin:0!important;transform:none!important;
+  opacity:.96;box-shadow:0 22px 44px rgba(0,0,0,.45),0 0 0 1px rgba(255,78,42,.28);
+}
+.menu-item.drag-source,.item-card.drag-source{opacity:.12;}
+@media(max-width:768px){
+  .menu-item.reorder-placeholder{min-height:64px;}
+  .item-card.reorder-placeholder{min-height:260px;}
+}
+
 </style>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 </head>
 <body>
 
@@ -644,6 +641,13 @@ function updateHeaderLabels(){
 
 function save() { localStorage.setItem('workoutData', JSON.stringify(data)); }
 function uid()  { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function moveInArray(arr, fromIndex, toIndex){
+  if(!Array.isArray(arr) || fromIndex===toIndex || fromIndex<0 || toIndex<0) return arr;
+  const copy=arr.slice();
+  const [moved]=copy.splice(fromIndex,1);
+  copy.splice(toIndex,0,moved);
+  return copy;
+}
 
 // ── 테마 ──
 function applyThemeIcons() {
@@ -687,7 +691,7 @@ function buildYTEmbed(url) {
 }
 function ytPlay(wid, videoId) {
   const box = document.getElementById(wid); if (!box) return;
-  box.innerHTML = '<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;" src="https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0&modestbranding=1&playsinline=1" allow="autoplay;encrypted-media;picture-in-picture;fullscreen" allowfullscreen></iframe>';
+  box.innerHTML = '<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;" src="https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0&playsinline=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
 }
 
 // ── 사이드바 렌더 ──
@@ -697,7 +701,7 @@ function renderMenus() {
   data.menus.forEach((m, i) => {
     const div = document.createElement('div');
     div.className = 'menu-item' + (m.id === activeMenuId ? ' active' : '');
-    div.dataset.id = m.id;
+    div.dataset.menuId = m.id;
     div.innerHTML = `
       <div class="menu-dot"></div>
       <div class="menu-name">${escHtml(m.name)}</div>
@@ -705,10 +709,9 @@ function renderMenus() {
         <button class="menu-btn" onclick="event.stopPropagation();openEditMenu('${m.id}')">수정</button>
         <button class="menu-btn del" onclick="event.stopPropagation();deleteMenu('${m.id}')">삭제</button>
       </div>`;
-    div.addEventListener('click', (e) => { if (document.body.dataset.reordering === '1') return; e.preventDefault(); selectMenu(m.id); if(isMobile()) closeSidebar(); });
+    div.addEventListener('click', (e) => { e.preventDefault(); selectMenu(m.id); if(isMobile()) closeSidebar(); });
     list.appendChild(div);
   });
-  attachMenuReorder();
 }
 
 // ── 카드 렌더 ──
@@ -741,7 +744,7 @@ function renderItems() {
   items.forEach((item, i) => {
     const card = document.createElement('div');
     card.className = 'item-card';
-    card.dataset.id = item.id;
+    card.dataset.itemId = item.id;
     card.style.animationDelay = (i * 0.06) + 's';
 
     // 제목 바 (중앙 정렬)
@@ -777,7 +780,6 @@ function renderItems() {
 
   container.innerHTML = '';
   container.appendChild(grid);
-  attachItemReorder();
 }
 
 function linkDisplay(url) {
@@ -877,6 +879,166 @@ function deleteItem(id) {
   save(); renderItems();
 }
 
+// ── 롱클릭 정렬 ──
+const reorderState = {
+  active:false, type:null, pointerId:null, startX:0, startY:0, offsetX:0, offsetY:0,
+  sourceEl:null, ghostEl:null, placeholder:null, sourceId:null, timer:null
+};
+const LONG_PRESS_MS = 320;
+const MOVE_CANCEL_PX = 10;
+
+function getDragType(el){
+  if(!el) return null;
+  if(el.closest('.menu-item')) return 'menu';
+  if(el.closest('.item-card')) return 'item';
+  return null;
+}
+function getDragElement(el){
+  return el.closest('.menu-item, .item-card');
+}
+function getContainerForType(type){
+  return type==='menu' ? document.getElementById('menu-list') : document.querySelector('.items-grid');
+}
+function clearReorderTimer(){ if(reorderState.timer){ clearTimeout(reorderState.timer); reorderState.timer=null; } }
+
+function scheduleReorderStart(event){
+  const target = getDragElement(event.target);
+  if(!target) return;
+  if(event.target.closest('button,a,input,textarea,iframe,.yt-thumb-layer')) return;
+  const type = getDragType(target);
+  const container = getContainerForType(type);
+  if(!container) return;
+  const point = getPoint(event);
+  reorderState.pointerId = event.pointerId;
+  reorderState.startX = point.x;
+  reorderState.startY = point.y;
+  reorderState.timer = setTimeout(() => startReorder(target, type, point), LONG_PRESS_MS);
+}
+
+function startReorder(target, type, point){
+  const container = getContainerForType(type);
+  if(!container || !target) return;
+  reorderState.active = true;
+  reorderState.type = type;
+  reorderState.sourceEl = target;
+  reorderState.sourceId = type==='menu' ? target.dataset.menuId : target.dataset.itemId;
+
+  const rect = target.getBoundingClientRect();
+  reorderState.offsetX = point.x - rect.left;
+  reorderState.offsetY = point.y - rect.top;
+
+  const placeholder = target.cloneNode(false);
+  placeholder.className = target.className + ' reorder-placeholder';
+  placeholder.innerHTML = '';
+  placeholder.style.height = rect.height + 'px';
+  if(type==='menu') placeholder.style.minHeight = rect.height + 'px';
+  target.parentNode.insertBefore(placeholder, target.nextSibling);
+  reorderState.placeholder = placeholder;
+
+  const ghost = target.cloneNode(true);
+  ghost.classList.add('drag-ghost');
+  ghost.style.width = rect.width + 'px';
+  ghost.style.height = rect.height + 'px';
+  ghost.style.left = rect.left + 'px';
+  ghost.style.top = rect.top + 'px';
+  document.body.appendChild(ghost);
+  reorderState.ghostEl = ghost;
+
+  target.classList.add('drag-source');
+  document.body.classList.add('dragging-reorder');
+  moveReorderGhost(point.x, point.y);
+}
+
+function moveReorderGhost(x, y){
+  if(!reorderState.active || !reorderState.ghostEl) return;
+  reorderState.ghostEl.style.left = (x - reorderState.offsetX) + 'px';
+  reorderState.ghostEl.style.top = (y - reorderState.offsetY) + 'px';
+}
+
+function commitReorder(){
+  if(!reorderState.active) return cleanupReorder();
+  const container = getContainerForType(reorderState.type);
+  const selector = reorderState.type==='menu' ? '.menu-item' : '.item-card';
+  if(!container || !reorderState.placeholder){ cleanupReorder(); return; }
+  const order = Array.from(container.querySelectorAll(selector + ', .reorder-placeholder')).map(el => {
+    if(el === reorderState.placeholder) return reorderState.sourceId;
+    return reorderState.type==='menu' ? el.dataset.menuId : el.dataset.itemId;
+  }).filter(Boolean);
+
+  if(reorderState.type==='menu'){
+    const map = new Map(data.menus.map(m => [m.id, m]));
+    data.menus = order.map(id => map.get(id)).filter(Boolean);
+  } else if(activeMenuId && Array.isArray(data.items[activeMenuId])) {
+    const map = new Map(data.items[activeMenuId].map(item => [item.id, item]));
+    data.items[activeMenuId] = order.map(id => map.get(id)).filter(Boolean);
+  }
+  save();
+  renderMenus();
+  renderItems();
+  cleanupReorder();
+}
+
+function cleanupReorder(){
+  clearReorderTimer();
+  if(reorderState.sourceEl) reorderState.sourceEl.classList.remove('drag-source');
+  if(reorderState.ghostEl && reorderState.ghostEl.parentNode) reorderState.ghostEl.parentNode.removeChild(reorderState.ghostEl);
+  if(reorderState.placeholder && reorderState.placeholder.parentNode) reorderState.placeholder.parentNode.removeChild(reorderState.placeholder);
+  document.body.classList.remove('dragging-reorder');
+  reorderState.active = false;
+  reorderState.type = null;
+  reorderState.sourceEl = null;
+  reorderState.ghostEl = null;
+  reorderState.placeholder = null;
+  reorderState.sourceId = null;
+}
+
+function getPoint(event){
+  if(event.touches && event.touches[0]) return {x:event.touches[0].clientX, y:event.touches[0].clientY};
+  return {x:event.clientX, y:event.clientY};
+}
+
+function handlePointerMove(event){
+  const point = getPoint(event);
+  if(reorderState.timer && !reorderState.active){
+    if(Math.abs(point.x - reorderState.startX) > MOVE_CANCEL_PX || Math.abs(point.y - reorderState.startY) > MOVE_CANCEL_PX){
+      clearReorderTimer();
+    }
+    return;
+  }
+  if(!reorderState.active) return;
+  event.preventDefault();
+  moveReorderGhost(point.x, point.y);
+  const container = getContainerForType(reorderState.type);
+  if(!container) return;
+  const selector = reorderState.type==='menu' ? '.menu-item' : '.item-card';
+  const siblings = Array.from(container.querySelectorAll(selector)).filter(el => el !== reorderState.sourceEl);
+  let placed = false;
+  for(const el of siblings){
+    const rect = el.getBoundingClientRect();
+    const before = reorderState.type==='menu' ? (point.y < rect.top + rect.height/2) : (point.y < rect.top + rect.height/2);
+    if(before){
+      if(container.contains(reorderState.placeholder) && reorderState.placeholder !== el.previousSibling){
+        container.insertBefore(reorderState.placeholder, el);
+      }
+      placed = true;
+      break;
+    }
+  }
+  if(!placed){
+    container.appendChild(reorderState.placeholder);
+  }
+}
+
+function handlePointerUp(){
+  if(reorderState.timer && !reorderState.active){ clearReorderTimer(); return; }
+  if(reorderState.active) commitReorder();
+}
+
+document.addEventListener('pointerdown', scheduleReorderStart, {passive:true});
+document.addEventListener('pointermove', handlePointerMove, {passive:false});
+document.addEventListener('pointerup', handlePointerUp, {passive:true});
+document.addEventListener('pointercancel', handlePointerUp, {passive:true});
+
 // ── 모달 ──
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -897,99 +1059,6 @@ document.getElementById('btn-item-confirm').addEventListener('click', saveItem);
 
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(s) { return escHtml(s); }
-
-
-function moveArrayByIds(source, orderedIds){
-  const map = new Map(source.map(item => [String(item.id), item]));
-  const reordered = [];
-  for (const id of orderedIds) {
-    const item = map.get(String(id));
-    if (item) reordered.push(item);
-  }
-  for (const item of source) {
-    if (!orderedIds.includes(String(item.id))) reordered.push(item);
-  }
-  return reordered;
-}
-
-let menuSortable = null;
-let itemSortable = null;
-
-function destroySortable(instance){
-  if(instance && typeof instance.destroy === 'function') instance.destroy();
-}
-
-function attachMenuReorder(){
-  destroySortable(menuSortable);
-  const list = document.getElementById('menu-list');
-  if(!list || typeof Sortable === 'undefined') return;
-
-  menuSortable = Sortable.create(list, {
-    animation: 180,
-    delay: 260,
-    delayOnTouchOnly: true,
-    touchStartThreshold: 6,
-    forceFallback: true,
-    fallbackOnBody: true,
-    fallbackTolerance: 4,
-    draggable: '.menu-item',
-    ghostClass: 'sort-ghost-item',
-    chosenClass: 'sort-chosen-item',
-    dragClass: 'sort-drag-item',
-    filter: '.menu-btn, .menu-actions',
-    preventOnFilter: false,
-    onStart: function(){ document.body.dataset.reordering = '1'; },
-    onMove: function(evt){
-      return !!evt.related || !!evt.to;
-    },
-    onEnd: function(){
-      setTimeout(()=>{ delete document.body.dataset.reordering; }, 50);
-      const orderedIds = [...list.querySelectorAll('.menu-item')].map(el => el.dataset.id).filter(Boolean);
-      if(orderedIds.length !== data.menus.length) {
-        renderMenus();
-        return;
-      }
-      data.menus = moveArrayByIds(data.menus, orderedIds);
-      save();
-      renderMenus();
-    }
-  });
-}
-
-function attachItemReorder(){
-  destroySortable(itemSortable);
-  const grid = document.querySelector('#items-container .items-grid');
-  if(!grid || typeof Sortable === 'undefined') return;
-
-  itemSortable = Sortable.create(grid, {
-    animation: 180,
-    delay: 260,
-    delayOnTouchOnly: true,
-    touchStartThreshold: 6,
-    forceFallback: true,
-    fallbackOnBody: true,
-    fallbackTolerance: 4,
-    draggable: '.item-card',
-    ghostClass: 'sort-ghost-item',
-    chosenClass: 'sort-chosen-item',
-    dragClass: 'sort-drag-item',
-    filter: '.card-action-btn, .yt-thumb-layer, iframe, a, button',
-    preventOnFilter: false,
-    onStart: function(){ document.body.dataset.reordering = '1'; },
-    onEnd: function(){
-      setTimeout(()=>{ delete document.body.dataset.reordering; }, 50);
-      const items = data.items[activeMenuId] || [];
-      const orderedIds = [...grid.querySelectorAll('.item-card')].map(el => el.dataset.id).filter(Boolean);
-      if(orderedIds.length !== items.length) {
-        renderItems();
-        return;
-      }
-      data.items[activeMenuId] = moveArrayByIds(items, orderedIds);
-      save();
-      renderItems();
-    }
-  });
-}
 
 // ── 초기화: 마지막 선택 메뉴 복원, 없으면 첫 번째 메뉴 선택 ──
 if (data.menus.length > 0) {
