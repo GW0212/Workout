@@ -2239,6 +2239,86 @@ body.dark #btn-top{border-color:rgba(255,126,96,.72);box-shadow:0 16px 38px rgba
   }
 }
 
+
+/* ━━ v25: mobile top button fix + compact shorts viewport fit ━━ */
+@media(max-width:768px){
+  #btn-top{
+    display:flex!important;
+    right:16px!important;
+    bottom:calc(24px + env(safe-area-inset-bottom,0px))!important;
+    width:46px!important;
+    height:46px!important;
+    font-size:22px!important;
+    z-index:99999!important;
+    opacity:0!important;
+    pointer-events:none!important;
+    visibility:hidden!important;
+    transform:translateY(10px) scale(.94)!important;
+    touch-action:manipulation!important;
+    -webkit-tap-highlight-color:transparent!important;
+  }
+  #btn-top.show{
+    opacity:1!important;
+    pointer-events:auto!important;
+    visibility:visible!important;
+    transform:translateY(0) scale(1)!important;
+  }
+
+  .grid[data-sub="shorts"]{
+    grid-template-columns:1fr!important;
+    place-items:center!important;
+    align-items:start!important;
+    gap:12px!important;
+  }
+  .grid[data-sub="shorts"] .card,
+  .card[data-vtype="shorts"]{
+    width:var(--mobile-short-card-width, 286px)!important;
+    max-width:calc(100vw - 28px)!important;
+    min-width:0!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+  .card[data-vtype="shorts"] .card-hd{
+    min-height:42px!important;
+    padding:6px 9px!important;
+  }
+  .card[data-vtype="shorts"] .card-main{
+    gap:4px!important;
+    min-width:0!important;
+  }
+  .card[data-vtype="shorts"] .type-pill{
+    height:22px!important;
+    padding:0 8px!important;
+    font-size:11px!important;
+  }
+  .card[data-vtype="shorts"] .card-ttl{
+    font-size:12px!important;
+    line-height:1.28!important;
+    display:-webkit-box!important;
+    -webkit-line-clamp:2!important;
+    -webkit-box-orient:vertical!important;
+    overflow:hidden!important;
+  }
+  .card[data-vtype="shorts"] .cbtns{gap:4px!important;}
+  .card[data-vtype="shorts"] .cbtn{
+    height:28px!important;
+    min-width:38px!important;
+    padding:0 8px!important;
+    font-size:11px!important;
+  }
+  .ytbox.shorts,
+  .ytbox.shorts.playing{
+    padding-bottom:177.78%!important;
+    max-height:none!important;
+  }
+}
+@media(max-width:380px){
+  .grid[data-sub="shorts"] .card,
+  .card[data-vtype="shorts"]{
+    width:var(--mobile-short-card-width, 262px)!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3234,7 +3314,7 @@ function delItem(iid,mid){
 }
 
 /* ━━ Render ━━ */
-function render(){renderTabs();renderItems();}
+function render(){renderTabs();renderItems();requestAnimationFrame(()=>{try{updateMobileShortsSize();updateTopButton();}catch(e){}});} 
 function renderTabs(){
   normalizeMenus();
   const sc=document.getElementById('tab-scroll');
@@ -3540,6 +3620,79 @@ document.addEventListener('pointercancel',cleanDrag,{passive:true});
     }
   },{passive:false});
 })();
+
+
+/* ━━ v25: robust mobile scroll-top + adaptive shorts card width ━━ */
+function scrollToPageTopV25(smooth=true){
+  const behavior=smooth?'smooth':'auto';
+  const scrollers=[document.scrollingElement, document.documentElement, document.body].filter(Boolean);
+  try{window.scrollTo({top:0,left:0,behavior});}catch(e){window.scrollTo(0,0);}
+  scrollers.forEach(el=>{
+    try{
+      if(typeof el.scrollTo==='function') el.scrollTo({top:0,left:0,behavior});
+      else el.scrollTop=0;
+    }catch(e){el.scrollTop=0;}
+  });
+  const force=()=>{
+    scrollers.forEach(el=>{try{el.scrollTop=0;el.scrollLeft=0;}catch(e){}});
+    try{window.scrollTo(0,0);}catch(e){}
+    updateTopButton();
+  };
+  if(!smooth) force();
+  setTimeout(force, smooth?460:60);
+}
+scrollToPageTop = scrollToPageTopV25;
+
+function updateTopButtonV25(){
+  const btn=document.getElementById('btn-top');
+  if(!btn)return;
+  const y=window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  btn.classList.toggle('show', y>180);
+}
+updateTopButton = updateTopButtonV25;
+
+function updateMobileShortsSize(){
+  const root=document.documentElement;
+  if(!root)return;
+  const isMob=window.matchMedia('(max-width: 768px)').matches;
+  if(!isMob){
+    root.style.removeProperty('--mobile-short-card-width');
+    return;
+  }
+  const vw=Math.min(window.innerWidth || 390, document.documentElement.clientWidth || 390);
+  const vh=(window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : (window.innerHeight || 740);
+  /* 남는 화면 안에 카드 헤더까지 들어오도록 숏폼 카드 폭을 역산 */
+  const reserved=260;
+  const maxVideoH=Math.max(360, vh-reserved);
+  let width=Math.floor(maxVideoH*9/16);
+  width=Math.max(218, Math.min(width, vw-28, 300));
+  root.style.setProperty('--mobile-short-card-width', width+'px');
+}
+
+function installV25MobileFixes(){
+  updateMobileShortsSize();
+  updateTopButton();
+  const topBtn=document.getElementById('btn-top');
+  if(topBtn && !topBtn.dataset.v25Bound){
+    topBtn.dataset.v25Bound='1';
+    topBtn.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      scrollToPageTop(true);
+    },{passive:false});
+    topBtn.addEventListener('touchend',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      scrollToPageTop(true);
+    },{passive:false});
+  }
+}
+window.addEventListener('scroll',updateTopButton,{passive:true});
+window.addEventListener('resize',()=>{updateMobileShortsSize();updateTopButton();},{passive:true});
+window.visualViewport?.addEventListener('resize',()=>{updateMobileShortsSize();updateTopButton();});
+window.addEventListener('orientationchange',()=>setTimeout(()=>{updateMobileShortsSize();updateTopButton();},180),{passive:true});
+window.addEventListener('load',installV25MobileFixes,{once:true});
+installV25MobileFixes();
 
 </script>
 </body>
