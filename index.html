@@ -1532,6 +1532,61 @@ body.dark .card[data-vtype]:hover{
   }
 }
 
+
+/* ━━ v15: Shorts desktop density — 4 cards per row, longform untouched ━━ */
+@media (min-width:1180px){
+  .grid[data-sub="shorts"]{
+    width:min(1480px,100%)!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:18px!important;
+    justify-content:stretch!important;
+    justify-items:stretch!important;
+    align-items:start!important;
+  }
+  .grid[data-sub="shorts"] .card,
+  .card[data-vtype="shorts"]{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
+@media (min-width:900px) and (max-width:1179px){
+  .grid[data-sub="shorts"]{
+    width:100%!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:16px!important;
+    justify-content:stretch!important;
+    justify-items:stretch!important;
+  }
+  .grid[data-sub="shorts"] .card,
+  .card[data-vtype="shorts"]{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
+@media (min-width:640px) and (max-width:899px){
+  .grid[data-sub="shorts"]{
+    width:100%!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:14px!important;
+    justify-content:stretch!important;
+    justify-items:stretch!important;
+  }
+  .grid[data-sub="shorts"] .card,
+  .card[data-vtype="shorts"]{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
+@media (max-width:639px){
+  .grid[data-sub="shorts"]{
+    grid-template-columns:minmax(0,1fr)!important;
+    justify-items:center!important;
+  }
+  .card[data-vtype="shorts"]{
+    max-width:430px!important;
+  }
+}
+
 </style>
 </head>
 <body>
