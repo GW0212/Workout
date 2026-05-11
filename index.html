@@ -2319,6 +2319,44 @@ body.dark #btn-top{border-color:rgba(255,126,96,.72);box-shadow:0 16px 38px rgba
   }
 }
 
+
+/* ━━ v26: 모바일 최상단 이동 버튼 강제 표시/동작 보정 ━━ */
+#btn-top{
+  -webkit-tap-highlight-color:transparent!important;
+  touch-action:manipulation!important;
+}
+@media(max-width:768px){
+  #btn-top{
+    position:fixed!important;
+    right:16px!important;
+    bottom:calc(18px + env(safe-area-inset-bottom,0px))!important;
+    width:48px!important;
+    height:48px!important;
+    min-width:48px!important;
+    min-height:48px!important;
+    border-radius:999px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    z-index:2147483647!important;
+    opacity:0!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    transform:translate3d(0,14px,0) scale(.94)!important;
+    transition:opacity .18s ease, transform .18s ease, visibility .18s ease!important;
+  }
+  #btn-top.show,
+  body.top-button-visible #btn-top{
+    opacity:1!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+    transform:translate3d(0,0,0) scale(1)!important;
+  }
+  #btn-top:active{
+    transform:translate3d(0,1px,0) scale(.98)!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3693,6 +3731,87 @@ window.visualViewport?.addEventListener('resize',()=>{updateMobileShortsSize();u
 window.addEventListener('orientationchange',()=>setTimeout(()=>{updateMobileShortsSize();updateTopButton();},180),{passive:true});
 window.addEventListener('load',installV25MobileFixes,{once:true});
 installV25MobileFixes();
+
+
+/* ━━ v26: 모바일 최상단 이동 버튼 표시/클릭 안정화 ━━ */
+(function(){
+  const btn = document.getElementById('btn-top');
+  if(!btn) return;
+
+  function getScrollYAll(){
+    const vals = [
+      window.pageYOffset || 0,
+      window.scrollY || 0,
+      document.scrollingElement ? document.scrollingElement.scrollTop : 0,
+      document.documentElement ? document.documentElement.scrollTop : 0,
+      document.body ? document.body.scrollTop : 0,
+      document.getElementById('main') ? document.getElementById('main').scrollTop : 0,
+      document.getElementById('ct') ? document.getElementById('ct').scrollTop : 0
+    ];
+    return Math.max.apply(null, vals.map(v => Number(v) || 0));
+  }
+
+  function setTopButtonVisible(){
+    const visible = getScrollYAll() > 140;
+    btn.classList.toggle('show', visible);
+    document.body.classList.toggle('top-button-visible', visible);
+  }
+
+  function goTop(e){
+    if(e){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const targets = [document.scrollingElement, document.documentElement, document.body, document.getElementById('main'), document.getElementById('ct')].filter(Boolean);
+    try{ window.scrollTo({top:0,left:0,behavior:'smooth'}); }catch(_){ window.scrollTo(0,0); }
+    targets.forEach(el=>{
+      try{
+        if(typeof el.scrollTo === 'function') el.scrollTo({top:0,left:0,behavior:'smooth'});
+        else el.scrollTop = 0;
+      }catch(_){ try{el.scrollTop = 0;}catch(__){} }
+    });
+    setTimeout(()=>{
+      targets.forEach(el=>{ try{el.scrollTop = 0; el.scrollLeft = 0;}catch(_){} });
+      try{ window.scrollTo(0,0); }catch(_){}
+      setTopButtonVisible();
+    }, 420);
+  }
+
+  let raf = 0;
+  function onAnyScroll(){
+    if(raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(setTopButtonVisible);
+  }
+
+  btn.onclick = goTop;
+  btn.addEventListener('click', goTop, {passive:false});
+  btn.addEventListener('touchstart', e=>e.stopPropagation(), {passive:false});
+  btn.addEventListener('touchend', goTop, {passive:false});
+
+  window.scrollToPageTop = function(smooth=true){
+    if(!smooth){
+      [document.scrollingElement, document.documentElement, document.body, document.getElementById('main'), document.getElementById('ct')].filter(Boolean).forEach(el=>{try{el.scrollTop=0;el.scrollLeft=0;}catch(_){}});
+      try{window.scrollTo(0,0);}catch(_){}
+      setTopButtonVisible();
+      return;
+    }
+    goTop();
+  };
+  window.updateTopButton = setTopButtonVisible;
+
+  ['scroll','resize','orientationchange','touchmove'].forEach(evt=>{
+    window.addEventListener(evt, onAnyScroll, {passive:true});
+    document.addEventListener(evt, onAnyScroll, {passive:true});
+  });
+  ['main','ct'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('scroll', onAnyScroll, {passive:true});
+  });
+  window.visualViewport?.addEventListener('scroll', onAnyScroll, {passive:true});
+  window.visualViewport?.addEventListener('resize', onAnyScroll, {passive:true});
+  setTopButtonVisible();
+  setTimeout(setTopButtonVisible, 250);
+})();
 
 </script>
 </body>
