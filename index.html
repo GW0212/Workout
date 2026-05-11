@@ -1923,13 +1923,198 @@ body.dark .share-step{border-color:rgba(255,255,255,.18);background:#151515;}
   }
 }
 
+
+/* ━━ v22: mobile tab stability, default light mobile, center import toast, sharper thumbnails ━━ */
+#logo{
+  cursor:pointer;
+  border-radius:14px;
+  outline:none;
+  -webkit-tap-highlight-color:transparent;
+}
+#logo:focus-visible{
+  box-shadow:0 0 0 4px rgba(255,78,42,.18);
+}
+.center-toast{
+  position:fixed;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(.96);
+  z-index:3000;
+  display:none;
+  opacity:0;
+  pointer-events:none;
+}
+.center-toast.show{
+  display:block;
+  animation:centerToastIn .22s cubic-bezier(.34,1.2,.64,1) forwards;
+}
+.toast-card{
+  min-width:260px;
+  max-width:min(420px,calc(100vw - 48px));
+  padding:18px 20px;
+  border-radius:22px;
+  border:1.5px solid rgba(40,199,111,.42);
+  background:rgba(255,255,255,.94);
+  color:#121212;
+  box-shadow:0 24px 70px rgba(0,0,0,.22),0 0 0 9999px rgba(0,0,0,.18);
+  backdrop-filter:blur(18px) saturate(145%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  text-align:left;
+}
+.toast-icon{
+  width:38px;height:38px;
+  border-radius:999px;
+  background:var(--green);
+  color:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:900;
+  flex-shrink:0;
+  box-shadow:0 10px 22px rgba(40,199,111,.28);
+}
+.toast-text{display:grid;gap:4px;min-width:0;}
+.toast-text strong{font-size:16px;font-weight:900;letter-spacing:-.3px;}
+.toast-text span{font-size:12.5px;font-weight:700;color:#4d5a58;line-height:1.5;}
+body.dark .toast-card{
+  background:rgba(18,24,32,.96);
+  color:#f7fafc;
+  border-color:rgba(40,199,111,.58);
+  box-shadow:0 24px 70px rgba(0,0,0,.5),0 0 0 9999px rgba(0,0,0,.34);
+}
+body.dark .toast-text span{color:#c6d0d6;}
+@keyframes centerToastIn{
+  from{opacity:0;transform:translate(-50%,-48%) scale(.94);}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1);}
+}
+.theme-switching #tabs,
+.theme-switching #tab-scroll,
+.theme-switching .tab,
+.theme-switching #btn-newtab{
+  animation:none!important;
+}
+.ytimg{
+  image-rendering:auto!important;
+  backface-visibility:hidden;
+  transform:translateZ(0);
+}
+.card[data-vtype="shorts"] .ytimg{
+  object-fit:cover!important;
+  object-position:center center!important;
+  filter:none!important;
+}
+@media(max-width:768px){
+  #tabs{
+    top:64px!important;
+    height:auto!important;
+    min-height:56px!important;
+    padding:7px 0!important;
+    overflow:visible!important;
+  }
+  #tab-scroll{
+    width:100%!important;
+    max-width:100%!important;
+    min-height:44px!important;
+    padding:7px 12px!important;
+    gap:7px!important;
+    align-items:center!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    border-radius:0!important;
+    border-left:0!important;
+    border-right:0!important;
+    scroll-padding-inline:12px;
+  }
+  .tab{
+    height:40px!important;
+    min-height:40px!important;
+    max-height:40px!important;
+    padding:0 12px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    line-height:1!important;
+    overflow:visible!important;
+    transform:none!important;
+    transition:background-color .12s,border-color .12s,color .12s,box-shadow .12s!important;
+  }
+  .tab:hover,
+  .tab.on{
+    transform:none!important;
+  }
+  .tab > span:first-child{
+    max-width:86px!important;
+    line-height:1.1!important;
+    display:inline-block!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .tcnt{
+    height:22px!important;
+    min-width:22px!important;
+    padding:0 7px!important;
+    line-height:22px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex-shrink:0!important;
+  }
+  .tmeta,
+  .tab:hover .tmeta,
+  .tab.on .tmeta{
+    display:none!important;
+  }
+  #btn-newtab{
+    width:40px!important;
+    height:40px!important;
+    min-width:40px!important;
+    max-height:40px!important;
+    margin-left:1px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+    transform:none!important;
+    transition:background-color .12s,border-color .12s,color .12s,box-shadow .12s!important;
+  }
+  body.theme-switching,
+  body.theme-switching *{
+    transition:none!important;
+  }
+  .center-toast{width:100%;display:none;}
+  .center-toast.show{display:flex;justify-content:center;padding:0 18px;}
+  .toast-card{
+    width:100%;
+    min-width:0;
+    max-width:360px;
+    padding:16px 17px;
+    border-radius:20px;
+  }
+  .toast-text strong{font-size:15px;}
+  .toast-text span{font-size:12px;}
+  .card[data-vtype="shorts"] .ytimg{
+    min-height:100%;
+    transform:none!important;
+  }
+}
+@media(max-width:380px){
+  .tab > span:first-child{max-width:68px!important;}
+  .tab{padding:0 10px!important;}
+  #tab-scroll{gap:5px!important;}
+}
+
 </style>
 </head>
 <body>
 
 <!-- Header -->
 <header id="hdr">
-  <div id="logo">
+  <div id="logo" onclick="goStartHome()" role="button" tabindex="0" title="시작 화면으로 이동">
     <div class="logo-dot">💪</div>
     <span class="logo-txt">Workout</span>
   </div>
@@ -2079,6 +2264,8 @@ body.dark .share-step{border-color:rgba(255,255,255,.18);background:#151515;}
   </div>
 </div>
 
+<div id="center-toast" class="center-toast" role="status" aria-live="polite"></div>
+
 <script>
 /* ━━ Helpers ━━ */
 const uid =()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -2140,17 +2327,26 @@ async function detectYT(url){
 function ytWatchUrl(id,type){
   return type==='shorts' ? `https://www.youtube.com/shorts/${id}` : `https://www.youtube.com/watch?v=${id}`;
 }
+function fallbackThumb(img){
+  const id=img?.dataset?.ytid;
+  if(!id){if(img) img.onerror=null;return;}
+  const candidates=['hq720.jpg','sddefault.jpg','hqdefault.jpg','mqdefault.jpg','default.jpg'];
+  let step=Number(img.dataset.ytstep||0);
+  if(step>=candidates.length){img.onerror=null;return;}
+  img.dataset.ytstep=String(step+1);
+  img.src=`https://i.ytimg.com/vi/${id}/${candidates[step]}`;
+}
 function buildYT(url,ratio,type){
   const id=getId(url); if(!id) return '';
   const wid='yt'+Date.now()+Math.random().toString(36).slice(2,6);
   const vtype=type||((isSh(url)||Number(ratio)>100)?'shorts':'longform');
   const pb=vtype==='shorts'?177.78:56.25;
-  const thumb=vtype==='longform'?'hqdefault':'hqdefault';
+  const thumb=`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
   const watch=ytWatchUrl(id,vtype);
   return `<div class="ytbox ${vtype}" id="${wid}" style="padding-bottom:${pb}%" data-ratio="${pb}">
     <div class="ytthumb" onclick="play('${wid}','${id}','${vtype}')">
-      <img class="ytimg" src="https://img.youtube.com/vi/${id}/${thumb}.jpg"
-           onerror="this.src='https://img.youtube.com/vi/${id}/mqdefault.jpg'" alt=""/>
+      <img class="ytimg" src="${thumb}" data-ytid="${id}" data-ytstep="0"
+           onerror="fallbackThumb(this)" loading="lazy" decoding="async" alt=""/>
       <a class="yt-open" href="${watch}" target="_blank" rel="noopener" onclick="event.stopPropagation()">▶ YouTube</a>
       <div class="ytplay"></div>
     </div>
@@ -2614,7 +2810,9 @@ function importSelectedWorkoutData(){
     const selected=getSelectedSubset('import');
     if(!selected){setShareMsg('가져올 메뉴 또는 영상을 선택해주세요.','warn');return;}
     const result=mergeImportedSelection(selected);
-    setShareMsg(`가져오기가 완료되었습니다. 새 메뉴 ${result.addedMenus}개, 영상 ${result.addedItems}개를 추가했습니다.${result.skipped?` 중복 링크 ${result.skipped}개는 제외했습니다.`:''}`,'ok');
+    const importSummary=`새 메뉴 ${result.addedMenus}개, 영상 ${result.addedItems}개 추가${result.skipped?`, 중복 ${result.skipped}개 제외`:''}`;
+    setShareMsg(`가져오기가 완료되었습니다. ${importSummary}`,'ok');
+    showCenterToast('데이터 가져오기 완료', importSummary);
     renderShareTree('export-tree',data,'export');
   }catch(e){
     setShareMsg('선택 데이터 가져오기 중 오류가 발생했습니다.','err');
@@ -2622,10 +2820,32 @@ function importSelectedWorkoutData(){
 }
 
 /* ━━ Theme — 기본: 라이트 ━━ */
+const isMobileViewport=()=>window.matchMedia('(max-width: 768px)').matches;
 const applyIcon=()=>document.getElementById('btn-theme').textContent=document.body.classList.contains('dark')?'🌙':'☀️';
-const toggleTheme=()=>{document.body.classList.toggle('dark');localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light');applyIcon();};
-if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark');
-applyIcon();
+function applySavedTheme(){
+  const saved=localStorage.getItem('theme')||'light';
+  const userSet=localStorage.getItem('themeUserSet')==='1';
+  const shouldDark=saved==='dark' && (!isMobileViewport() || userSet);
+  document.body.classList.toggle('dark',shouldDark);
+  if(isMobileViewport() && saved==='dark' && !userSet){
+    localStorage.setItem('theme','light');
+  }
+  applyIcon();
+}
+const toggleTheme=()=>{
+  const sc=document.getElementById('tab-scroll');
+  const keepLeft=sc?sc.scrollLeft:0;
+  document.body.classList.add('theme-switching');
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light');
+  localStorage.setItem('themeUserSet','1');
+  applyIcon();
+  requestAnimationFrame(()=>{
+    if(sc) sc.scrollLeft=keepLeft;
+    setTimeout(()=>document.body.classList.remove('theme-switching'),180);
+  });
+};
+applySavedTheme();
 
 /* ━━ Detect UI ━━ */
 let dtimer=null, lastDet=null;
@@ -2653,6 +2873,26 @@ function setD(type,msg){
   ic.innerHTML=type==='ld'?'<span class="dspinner"></span>':'<span class="ddot"></span>';
   m.textContent=msg||'';
 }
+
+/* ━━ Center toast / home navigation ━━ */
+let centerToastTimer=null;
+function showCenterToast(title,detail=''){
+  const el=document.getElementById('center-toast');
+  if(!el)return;
+  clearTimeout(centerToastTimer);
+  el.innerHTML=`<div class="toast-card"><div class="toast-icon">✓</div><div class="toast-text"><strong>${esc(title)}</strong>${detail?`<span>${esc(detail)}</span>`:''}</div></div>`;
+  el.classList.add('show');
+  centerToastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+function goStartHome(){
+  aid=null;
+  localStorage.removeItem('workoutActiveMenuId');
+  render();
+  window.scrollTo({top:0,behavior:'auto'});
+}
+document.getElementById('logo')?.addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();goStartHome();}
+});
 
 /* ━━ Modal common ━━ */
 const openModal=id=>document.getElementById(id).classList.add('open');
