@@ -1183,6 +1183,97 @@ body.dark .ov.open .modal{
   }
 }
 
+
+
+/* ━━ v9: Bigger longform player + Premium-friendly YouTube playback path ━━ */
+.subtabs-row,
+.grid{
+  width:min(1240px,100%);
+  margin-left:auto;
+  margin-right:auto;
+}
+.grid[data-sub="longform"]{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr))!important;
+  gap:22px!important;
+}
+.grid[data-sub="longform"] .card{
+  border-radius:24px;
+}
+.ytbox.longform{
+  padding-bottom:56.25%!important;
+  max-height:none!important;
+}
+.card[data-vtype="longform"] .card-hd{
+  min-height:58px;
+  padding:13px 15px;
+}
+.card[data-vtype="longform"] .card-ttl{
+  font-size:14.5px;
+  line-height:1.45;
+}
+.card[data-vtype="longform"] .ytplay{
+  width:72px!important;
+  height:50px!important;
+  border-radius:14px;
+}
+.card[data-vtype="longform"] .ytplay::after{
+  border-left-width:18px;
+  border-top-width:11px;
+  border-bottom-width:11px;
+}
+.yt-open{
+  position:absolute;
+  right:12px;
+  bottom:12px;
+  z-index:3;
+  min-height:30px;
+  padding:0 11px;
+  border:1px solid rgba(255,255,255,.38);
+  border-radius:999px;
+  background:rgba(0,0,0,.56);
+  color:#fff;
+  text-decoration:none;
+  font-family:'Pretendard',sans-serif;
+  font-size:11.5px;
+  font-weight:800;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 8px 18px rgba(0,0,0,.24);
+  transition:transform .16s, background .16s, border-color .16s;
+}
+.yt-open:hover{
+  transform:translateY(-1px);
+  background:rgba(255,78,42,.88);
+  border-color:rgba(255,255,255,.52);
+  text-decoration:none;
+}
+body.dark .yt-open{
+  border-color:rgba(255,255,255,.48);
+  background:rgba(7,9,13,.72);
+}
+@media(min-width:1280px){
+  .grid[data-sub="longform"]{
+    grid-template-columns:repeat(auto-fit,minmax(590px,1fr))!important;
+  }
+}
+@media(max-width:768px){
+  .subtabs-row,
+  .grid{width:100%;}
+  .grid[data-sub="longform"]{
+    grid-template-columns:1fr!important;
+    gap:16px!important;
+  }
+  .card[data-vtype="longform"] .card-hd{
+    min-height:54px;
+    padding:12px;
+  }
+  .card[data-vtype="longform"] .card-ttl{font-size:13.5px;}
+  .card[data-vtype="longform"] .ytplay{width:62px!important;height:43px!important;}
+  .yt-open{right:10px;bottom:10px;min-height:28px;padding:0 9px;font-size:11px;}
+}
+
 </style>
 </head>
 <body>
@@ -1295,16 +1386,21 @@ async function detectYT(url){
   }
 }
 
+function ytWatchUrl(id,type){
+  return type==='shorts' ? `https://www.youtube.com/shorts/${id}` : `https://www.youtube.com/watch?v=${id}`;
+}
 function buildYT(url,ratio,type){
   const id=getId(url); if(!id) return '';
   const wid='yt'+Date.now()+Math.random().toString(36).slice(2,6);
   const vtype=type||((isSh(url)||Number(ratio)>100)?'shorts':'longform');
   const pb=vtype==='shorts'?177.78:56.25;
   const thumb=vtype==='longform'?'hqdefault':'hqdefault';
+  const watch=ytWatchUrl(id,vtype);
   return `<div class="ytbox ${vtype}" id="${wid}" style="padding-bottom:${pb}%" data-ratio="${pb}">
     <div class="ytthumb" onclick="play('${wid}','${id}')">
       <img class="ytimg" src="https://img.youtube.com/vi/${id}/${thumb}.jpg"
            onerror="this.src='https://img.youtube.com/vi/${id}/mqdefault.jpg'" alt=""/>
+      <a class="yt-open" href="${watch}" target="_blank" rel="noopener" onclick="event.stopPropagation()">▶ YouTube</a>
       <div class="ytplay"></div>
     </div>
   </div>`;
@@ -1312,8 +1408,9 @@ function buildYT(url,ratio,type){
 function play(wid,vid){
   const b=document.getElementById(wid);if(!b)return;
   const pb=b.style.paddingBottom;
+  const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
   b.innerHTML=`<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;"
-    src="https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0&playsinline=1"
+    src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1&enablejsapi=1&origin=${origin}"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
   b.style.paddingBottom=pb;
