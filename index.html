@@ -1587,6 +1587,129 @@ body.dark .card[data-vtype]:hover{
   }
 }
 
+
+/* ━━ Share / Backup UI ━━ */
+#btn-share{
+  width:auto;min-width:78px;height:36px;padding:0 12px;gap:6px;
+  border:1.5px solid var(--border2);font-weight:800;font-size:12.5px;
+  background:linear-gradient(180deg,var(--sf2),var(--surface));
+}
+#btn-share:hover{border-color:rgba(255,78,42,.45);color:var(--accent);box-shadow:0 8px 18px rgba(255,78,42,.12);}
+.share-box{
+  border:1.5px solid var(--border);background:var(--sf2);
+  border-radius:16px;padding:15px;margin-bottom:14px;
+}
+.share-lead{font-size:13px;line-height:1.75;color:var(--tsub);word-break:keep-all;}
+.share-lead b{color:var(--accent);font-weight:800;}
+.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.share-btn{
+  min-height:42px;padding:0 14px;border-radius:12px;
+  border:1.5px solid var(--border2);background:var(--surface);color:var(--text);
+  font-family:'Pretendard',sans-serif;font-size:13px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:transform .16s,box-shadow .16s,border-color .16s,background .16s;
+}
+.share-btn:hover{transform:translateY(-1px);border-color:rgba(255,78,42,.48);box-shadow:var(--sh1);}
+.share-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 8px 20px rgba(255,78,42,.24);}
+.share-btn.primary:hover{background:var(--accent2);}
+.share-btn.full{grid-column:1 / -1;}
+.share-msg{
+  display:none;margin-top:12px;padding:10px 12px;border-radius:12px;
+  font-size:12.5px;font-weight:700;line-height:1.5;border:1px solid transparent;
+}
+.share-msg.ok{display:block;background:rgba(40,199,111,.10);color:var(--green);border-color:rgba(40,199,111,.25);}
+.share-msg.warn{display:block;background:rgba(255,78,42,.10);color:var(--accent);border-color:rgba(255,78,42,.26);}
+.share-msg.err{display:block;background:rgba(255,59,48,.10);color:var(--red);border-color:rgba(255,59,48,.25);}
+body.dark #btn-share{border-color:rgba(255,255,255,.22);background:linear-gradient(180deg,#252525,#191919);}
+body.dark #btn-share:hover{border-color:rgba(255,126,96,.68);box-shadow:0 0 0 3px rgba(255,78,42,.12);}
+body.dark .share-box{border-color:rgba(255,255,255,.16);background:#202020;}
+body.dark .share-btn{border-color:rgba(255,255,255,.18);background:#181818;color:#f2f2f2;}
+body.dark .share-btn:hover{border-color:rgba(255,126,96,.58);background:#242424;}
+@media(max-width:768px){
+  #hdr{grid-template-columns:92px 1fr 92px!important;}
+  #hdr-r{gap:6px!important;}
+  #btn-share{width:38px!important;min-width:38px!important;height:38px!important;padding:0!important;border-radius:12px!important;}
+  #btn-share .share-label{display:none!important;}
+  #btn-theme{width:38px!important;height:38px!important;border-radius:12px!important;}
+  .share-actions{grid-template-columns:1fr;}
+  .share-btn.full{grid-column:auto;}
+}
+
+
+/* ━━ v17: selective share / import refinement ━━ */
+.share-modal{max-width:720px;}
+.share-head{position:relative;justify-content:center;margin-bottom:18px;}
+.share-head .mttl{width:100%;text-align:center;font-size:19px;}
+.share-head .mclose{position:absolute;right:0;top:50%;transform:translateY(-50%);}
+.share-section-title{
+  margin:16px 0 8px;font-size:12px;font-weight:900;color:var(--text);
+  letter-spacing:-.2px;display:flex;align-items:center;gap:7px;
+}
+.share-section-title::before{content:'';width:7px;height:7px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 4px rgba(255,78,42,.12);}
+.share-tools{display:flex;gap:6px;justify-content:flex-end;margin:-2px 0 8px;}
+.share-tools button{
+  height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--border2);
+  background:var(--surface);color:var(--tsub);font-family:'Pretendard',sans-serif;font-size:11.5px;font-weight:800;cursor:pointer;
+}
+.share-tools button:hover{border-color:rgba(255,78,42,.48);color:var(--accent);}
+.share-tree{
+  max-height:260px;overflow:auto;border:1.5px solid var(--border);border-radius:14px;
+  background:var(--surface);padding:8px;scrollbar-width:thin;
+}
+.share-menu-block{border:1px solid var(--border);border-radius:13px;background:var(--sf2);overflow:hidden;margin-bottom:8px;}
+.share-menu-block:last-child{margin-bottom:0;}
+.share-menu-row{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:10px 11px;border-bottom:1px solid var(--border);
+}
+.share-menu-label,.share-item-label{display:flex;align-items:center;gap:9px;min-width:0;cursor:pointer;}
+.share-menu-label input,.share-item-label input{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;}
+.share-menu-name{font-size:13.5px;font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.share-count{
+  min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--surface);
+  border:1px solid var(--border);font-size:11px;font-weight:900;color:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.share-fold{
+  width:28px;height:28px;border-radius:9px;border:1px solid var(--border2);background:var(--surface);
+  color:var(--tsub);font-weight:900;cursor:pointer;flex-shrink:0;
+}
+.share-fold:hover{color:var(--accent);border-color:rgba(255,78,42,.45);}
+.share-items{padding:7px 9px 9px;display:grid;gap:6px;}
+.share-item-label{
+  min-height:34px;padding:7px 8px;border:1px solid var(--border);border-radius:10px;
+  background:var(--surface);transition:border-color .15s,background .15s;
+}
+.share-item-label:hover{border-color:rgba(255,78,42,.35);background:var(--sf2);}
+.share-item-title{font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.share-type{
+  height:20px;padding:0 7px;border-radius:999px;font-size:10.5px;font-weight:900;
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:rgba(255,78,42,.10);color:var(--accent);border:1px solid rgba(255,78,42,.20);
+}
+.share-type.longform{background:rgba(90,120,255,.10);color:#5b6fff;border-color:rgba(90,120,255,.22);}
+.share-empty-small{padding:10px 9px;font-size:12px;color:var(--tmuted);}
+.share-divider{height:1px;background:var(--border);margin:16px 0;}
+.share-hint{font-size:12.5px;line-height:1.6;color:var(--tsub);margin:0 0 8px;word-break:keep-all;}
+.import-area{animation:sectionIn .2s cubic-bezier(.34,1.2,.64,1) both;}
+.import-apply{width:100%;margin-top:10px;}
+.share-box .share-actions{margin-top:12px;}
+body.dark .share-tree{border-color:rgba(255,255,255,.20);background:#10141c;}
+body.dark .share-menu-block{border-color:rgba(255,255,255,.18);background:#1a202b;}
+body.dark .share-menu-row{border-bottom-color:rgba(255,255,255,.15);}
+body.dark .share-item-label{border-color:rgba(255,255,255,.16);background:#141924;}
+body.dark .share-item-label:hover{border-color:rgba(255,126,96,.55);background:#1d2430;}
+body.dark .share-count,body.dark .share-fold{border-color:rgba(255,255,255,.18);}
+body.dark .share-tools button{border-color:rgba(255,255,255,.20);background:#141924;color:#cfd6e4;}
+body.dark .share-divider{background:rgba(255,255,255,.16);}
+@media(max-width:768px){
+  .share-modal{max-width:none;}
+  .share-head .mttl{font-size:18px;}
+  .share-tree{max-height:230px;padding:7px;}
+  .share-menu-row{padding:9px 9px;}
+  .share-actions{gap:8px;}
+  .share-item-title{font-size:12px;}
+}
+
 </style>
 </head>
 <body>
@@ -1599,6 +1722,7 @@ body.dark .card[data-vtype]:hover{
   </div>
   <div id="hdr-gap"></div>
   <div id="hdr-r">
+    <button class="hbtn" id="btn-share" onclick="openShareModal()" title="데이터 공유/백업"><span aria-hidden="true">⇄</span><span class="share-label">공유</span></button>
     <button class="hbtn" id="btn-theme" onclick="toggleTheme()" title="테마 변경">☀️</button>
   </div>
 </header>
@@ -1657,6 +1781,55 @@ body.dark .card[data-vtype]:hover{
     <div class="macts">
       <button class="btn-no" onclick="closeModal('m-tab')">취소</button>
       <button class="btn-yes" onclick="saveTab()">저장</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal: 데이터 공유/백업 -->
+<div class="ov" id="m-share">
+  <div class="modal share-modal">
+    <div class="mrow share-head">
+      <div class="mttl">데이터 <span class="ac">공유</span></div>
+      <button class="mclose" onclick="closeModal('m-share')">✕</button>
+    </div>
+    <div class="share-box">
+      <p class="share-lead">
+        메뉴와 저장한 영상은 브라우저 <b>로컬 저장소</b>에 저장됩니다.<br/>
+        필요한 메뉴와 해당 메뉴 안의 영상만 골라서 JSON으로 공유할 수 있습니다.
+      </p>
+
+      <div class="share-section-title">내보낼 데이터 선택</div>
+      <div class="share-tools">
+        <button type="button" onclick="setShareChecks('export',true)">전체 선택</button>
+        <button type="button" onclick="setShareChecks('export',false)">전체 해제</button>
+      </div>
+      <div id="export-tree" class="share-tree"></div>
+
+      <div class="share-actions">
+        <button class="share-btn primary" onclick="exportWorkoutData()">⬇ 선택 데이터 내보내기</button>
+        <button class="share-btn" onclick="document.getElementById('share-file').click()">⬆ 가져올 파일 선택</button>
+        <button class="share-btn full" onclick="copyWorkoutData()">📋 선택 백업 코드 복사</button>
+      </div>
+
+      <input id="share-file" type="file" accept="application/json,.json" hidden onchange="importShareFile(event)"/>
+
+      <div id="import-area" class="import-area" hidden>
+        <div class="share-divider"></div>
+        <div class="share-section-title">가져올 데이터 선택</div>
+        <p class="share-hint">선택한 메뉴와 영상만 현재 브라우저 데이터에 추가됩니다. 같은 이름의 메뉴가 있으면 해당 메뉴 안으로 합쳐지고, 같은 링크는 중복 추가하지 않습니다.</p>
+        <div class="share-tools">
+          <button type="button" onclick="setShareChecks('import',true)">전체 선택</button>
+          <button type="button" onclick="setShareChecks('import',false)">전체 해제</button>
+        </div>
+        <div id="import-tree" class="share-tree"></div>
+        <button class="share-btn primary full import-apply" onclick="importSelectedWorkoutData()">✅ 선택한 데이터 가져오기</button>
+      </div>
+
+      <div id="share-msg" class="share-msg"></div>
+    </div>
+    <div class="macts">
+      <button class="btn-no" onclick="closeModal('m-share')">닫기</button>
     </div>
   </div>
 </div>
@@ -1788,6 +1961,295 @@ function normalizeMenus(){
   });
 }
 normalizeMenus();
+
+/* ━━ Data Share / Backup ━━ */
+let pendingImportRaw=null;
+let pendingImportData=null;
+
+function openShareModal(){
+  const input=document.getElementById('share-file');
+  if(input) input.value='';
+  pendingImportRaw=null;
+  pendingImportData=null;
+  const importArea=document.getElementById('import-area');
+  if(importArea) importArea.hidden=true;
+  renderShareTree('export-tree',data,'export');
+  setShareMsg('', '');
+  openModal('m-share');
+}
+function setShareMsg(msg,type='ok'){
+  const el=document.getElementById('share-msg');
+  if(!el)return;
+  if(!msg){el.textContent='';el.className='share-msg';return;}
+  el.textContent=msg;
+  el.className='share-msg '+(type||'ok');
+}
+function cloneItemForShare(it){
+  const item=Object.assign({},it||{});
+  const title=String(item.title||item.name||'');
+  const link=String(item.link||item.url||'');
+  const memo=String(item.memo||item.content||'');
+  const vtype=videoTypeFromItem(Object.assign({},item,{link,url:link}));
+  item.id=String(item.id||uid());
+  item.title=title;item.name=title;
+  item.link=link;item.url=link;
+  item.memo=memo;item.content=memo;
+  item.vtype=vtype;item.videoType=vtype;
+  item.createdAt=item.createdAt||Date.now();
+  return item;
+}
+function sanitizeImportedData(raw){
+  const src=raw?.workoutData||raw?.data||raw;
+  if(!src||!Array.isArray(src.menus)||!src.items||typeof src.items!=='object'){
+    throw new Error('invalid');
+  }
+  const next={menus:[],items:{}};
+  const usedMenuIds=new Set();
+  src.menus.forEach((m,idx)=>{
+    if(!m)return;
+    let originalId=String(m.id||'');
+    let id=originalId||uid();
+    if(usedMenuIds.has(id)) id=uid();
+    usedMenuIds.add(id);
+    const name=String(m.name||`메뉴 ${idx+1}`).trim()||`메뉴 ${idx+1}`;
+    next.menus.push({id,name});
+    const arr=Array.isArray(src.items[originalId])?src.items[originalId]:[];
+    const usedItemIds=new Set();
+    next.items[id]=arr.map(it=>{
+      const item=cloneItemForShare(it);
+      let itemId=String(item.id||uid());
+      if(usedItemIds.has(itemId)) itemId=uid();
+      usedItemIds.add(itemId);
+      item.id=itemId;
+      return item;
+    });
+  });
+  return next;
+}
+function shareItemCount(src,menuId){
+  return Array.isArray(src?.items?.[menuId])?src.items[menuId].length:0;
+}
+function renderShareTree(containerId,src,prefix){
+  const box=document.getElementById(containerId);
+  if(!box)return;
+  const safe=sanitizeImportedData(src||{menus:[],items:{}});
+  if(prefix==='import') pendingImportData=safe;
+  if(!safe.menus.length){
+    box.innerHTML='<div class="share-empty-small">선택 가능한 메뉴가 없습니다.</div>';
+    return;
+  }
+  box.innerHTML=safe.menus.map((m,mi)=>{
+    const items=safe.items[m.id]||[];
+    const rows=items.length?items.map((it,ii)=>{
+      const type=videoTypeFromItem(it);
+      const label=String(it.title||it.name||it.link||`영상 ${ii+1}`)||`영상 ${ii+1}`;
+      return `<label class="share-item-label" title="${esc(label)}">
+        <input type="checkbox" class="share-item-check" data-prefix="${prefix}" data-menu-id="${esc(m.id)}" data-item-id="${esc(it.id)}" checked/>
+        <span class="share-type ${type}">${SUBS[type].label}</span>
+        <span class="share-item-title">${esc(label)}</span>
+      </label>`;
+    }).join(''):'<div class="share-empty-small">이 메뉴에는 저장된 영상이 없습니다.</div>';
+    return `<div class="share-menu-block" data-prefix="${prefix}" data-menu-id="${esc(m.id)}">
+      <div class="share-menu-row">
+        <label class="share-menu-label" title="${esc(m.name)}">
+          <input type="checkbox" class="share-menu-check" data-prefix="${prefix}" data-menu-id="${esc(m.id)}" checked/>
+          <span class="share-menu-name">${esc(m.name)}</span>
+          <span class="share-count">${items.length}</span>
+        </label>
+        <button type="button" class="share-fold" onclick="toggleShareMenu(this)" title="펼침/접힘">⌃</button>
+      </div>
+      <div class="share-items">${rows}</div>
+    </div>`;
+  }).join('');
+  box.onchange=e=>{
+    const target=e.target;
+    if(target.classList.contains('share-menu-check')){
+      const block=target.closest('.share-menu-block');
+      block.querySelectorAll('.share-item-check').forEach(ch=>ch.checked=target.checked);
+      target.indeterminate=false;
+    }
+    if(target.classList.contains('share-item-check')){
+      updateShareMenuState(target.closest('.share-menu-block'));
+    }
+  };
+  box.querySelectorAll('.share-menu-block').forEach(updateShareMenuState);
+}
+function toggleShareMenu(btn){
+  const block=btn.closest('.share-menu-block');
+  const items=block?.querySelector('.share-items');
+  if(!items)return;
+  const hidden=items.style.display==='none';
+  items.style.display=hidden?'grid':'none';
+  btn.textContent=hidden?'⌃':'⌄';
+}
+function updateShareMenuState(block){
+  if(!block)return;
+  const menu=block.querySelector('.share-menu-check');
+  const items=[...block.querySelectorAll('.share-item-check')];
+  if(!menu)return;
+  if(!items.length){menu.indeterminate=false;return;}
+  const checked=items.filter(ch=>ch.checked).length;
+  menu.checked=checked===items.length;
+  menu.indeterminate=checked>0&&checked<items.length;
+}
+function setShareChecks(prefix,checked){
+  const box=document.getElementById(prefix==='import'?'import-tree':'export-tree');
+  if(!box)return;
+  box.querySelectorAll('input[type="checkbox"]').forEach(ch=>{ch.checked=checked;ch.indeterminate=false;});
+}
+function sourceForPrefix(prefix){
+  return prefix==='import'?pendingImportData:data;
+}
+function getSelectedSubset(prefix){
+  const src=sourceForPrefix(prefix);
+  const box=document.getElementById(prefix==='import'?'import-tree':'export-tree');
+  if(!src||!box) return null;
+  const safe=sanitizeImportedData(src);
+  const next={menus:[],items:{}};
+  safe.menus.forEach(m=>{
+    const block=box.querySelector(`.share-menu-block[data-menu-id="${CSS.escape(m.id)}"]`);
+    if(!block)return;
+    const menuChecked=block.querySelector('.share-menu-check')?.checked;
+    const selectedItemIds=new Set([...block.querySelectorAll('.share-item-check:checked')].map(ch=>ch.dataset.itemId));
+    const sourceItems=safe.items[m.id]||[];
+    const selectedItems=sourceItems.filter(it=>selectedItemIds.has(String(it.id))).map(cloneItemForShare);
+    if(menuChecked||selectedItems.length){
+      next.menus.push({id:m.id,name:m.name});
+      next.items[m.id]=selectedItems;
+    }
+  });
+  if(!next.menus.length)return null;
+  return next;
+}
+function getSelectedPayload(prefix='export'){
+  const selected=getSelectedSubset(prefix);
+  if(!selected)return null;
+  const selectedIds=new Set(selected.menus.map(m=>m.id));
+  const selectedSub={};
+  Object.keys(subMap||{}).forEach(id=>{if(selectedIds.has(id)) selectedSub[id]=subMap[id];});
+  const selectedAid=selectedIds.has(aid)?aid:(selected.menus[0]?.id||null);
+  return {
+    app:'Workout',
+    version:3,
+    exportMode:'selected',
+    exportedAt:new Date().toISOString(),
+    workoutData:selected,
+    activeMenuId:selectedAid,
+    subTabState:selectedSub,
+    theme:localStorage.getItem('theme')||'light'
+  };
+}
+function backupFileName(){
+  const stamp=new Date().toISOString().slice(0,19).replace(/[T:]/g,'-');
+  return `workout-selected-backup-${stamp}.json`;
+}
+function exportWorkoutData(){
+  try{
+    const payload=getSelectedPayload('export');
+    if(!payload){setShareMsg('내보낼 메뉴 또는 영상을 선택해주세요.','warn');return;}
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=backupFileName();
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),500);
+    setShareMsg('선택한 메뉴/영상만 포함한 JSON 파일을 만들었습니다.','ok');
+  }catch(e){setShareMsg('내보내기 중 오류가 발생했습니다.','err');}
+}
+async function copyWorkoutData(){
+  try{
+    const payload=getSelectedPayload('export');
+    if(!payload){setShareMsg('복사할 메뉴 또는 영상을 선택해주세요.','warn');return;}
+    const text=JSON.stringify(payload);
+    if(navigator.clipboard&&window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+    }else{
+      const ta=document.createElement('textarea');
+      ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';
+      document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+    }
+    setShareMsg('선택한 데이터의 백업 코드가 복사되었습니다.','ok');
+  }catch(e){setShareMsg('복사 권한이 차단되었습니다. 내보내기 파일을 사용해주세요.','warn');}
+}
+function normalizeLinkKey(link){
+  const id=getId(link);
+  if(id)return `yt:${id}`;
+  return String(link||'').trim().toLowerCase();
+}
+function mergeImportedSelection(selected){
+  const incoming=sanitizeImportedData(selected);
+  normalizeMenus();
+  let addedMenus=0,addedItems=0,skipped=0;
+  let firstTargetId=null;
+  incoming.menus.forEach(m=>{
+    let target=data.menus.find(x=>String(x.name||'').trim().toLowerCase()===String(m.name||'').trim().toLowerCase());
+    if(!target){
+      target={id:uid(),name:m.name};
+      data.menus.push(target);
+      data.items[target.id]=[];
+      addedMenus++;
+    }
+    if(!firstTargetId)firstTargetId=target.id;
+    if(!Array.isArray(data.items[target.id]))data.items[target.id]=[];
+    const existing=data.items[target.id];
+    const links=new Set(existing.map(it=>normalizeLinkKey(it.link||it.url)).filter(Boolean));
+    (incoming.items[m.id]||[]).forEach(it=>{
+      const key=normalizeLinkKey(it.link||it.url);
+      if(key&&links.has(key)){skipped++;return;}
+      const ni=cloneItemForShare(it);
+      ni.id=uid();
+      existing.push(ni);
+      if(key)links.add(key);
+      addedItems++;
+    });
+  });
+  normalizeMenus();
+  if(firstTargetId){
+    aid=firstTargetId;
+    localStorage.setItem('workoutActiveMenuId',aid);
+  }
+  save();saveSub();render();
+  return {addedMenus,addedItems,skipped};
+}
+function importShareFile(event){
+  const file=event.target.files&&event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const raw=JSON.parse(String(reader.result||''));
+      pendingImportRaw=raw;
+      pendingImportData=sanitizeImportedData(raw);
+      renderShareTree('import-tree',pendingImportData,'import');
+      const importArea=document.getElementById('import-area');
+      if(importArea)importArea.hidden=false;
+      const menuCount=pendingImportData.menus.length;
+      const itemCount=pendingImportData.menus.reduce((sum,m)=>sum+shareItemCount(pendingImportData,m.id),0);
+      setShareMsg(`가져올 파일을 읽었습니다. 메뉴 ${menuCount}개, 영상 ${itemCount}개 중 필요한 항목만 선택해주세요.`,'ok');
+    }catch(e){
+      pendingImportRaw=null;pendingImportData=null;
+      const importArea=document.getElementById('import-area');
+      if(importArea)importArea.hidden=true;
+      setShareMsg('가져오기 실패: 지원하지 않는 JSON 파일이거나 파일이 손상되었습니다.','err');
+    }finally{
+      event.target.value='';
+    }
+  };
+  reader.onerror=()=>setShareMsg('파일을 읽지 못했습니다.','err');
+  reader.readAsText(file,'utf-8');
+}
+function importSelectedWorkoutData(){
+  try{
+    if(!pendingImportData){setShareMsg('먼저 가져올 JSON 파일을 선택해주세요.','warn');return;}
+    const selected=getSelectedSubset('import');
+    if(!selected){setShareMsg('가져올 메뉴 또는 영상을 선택해주세요.','warn');return;}
+    const result=mergeImportedSelection(selected);
+    setShareMsg(`가져오기가 완료되었습니다. 새 메뉴 ${result.addedMenus}개, 영상 ${result.addedItems}개를 추가했습니다.${result.skipped?` 중복 링크 ${result.skipped}개는 제외했습니다.`:''}`,'ok');
+    renderShareTree('export-tree',data,'export');
+  }catch(e){
+    setShareMsg('선택 데이터 가져오기 중 오류가 발생했습니다.','err');
+  }
+}
 
 /* ━━ Theme — 기본: 라이트 ━━ */
 const applyIcon=()=>document.getElementById('btn-theme').textContent=document.body.classList.contains('dark')?'🌙':'☀️';
