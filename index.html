@@ -7720,5 +7720,177 @@ body.dark .library-command-row > .subtabs-row .reorder-add.content-add{
 })();
 </script>
 
+
+
+<!-- v46: mobile compact search/favorite row + one-line subtab/action row -->
+<style>
+@media(max-width:900px){
+  /* 모바일: 검색창 + 즐겨찾기만 한 줄에 노출 */
+  #ct > .library-command-row{
+    gap:8px!important;
+    padding:0 10px!important;
+    margin:0 auto 10px!important;
+  }
+  .library-command-row > .library-tools.command-left,
+  .library-command-row > .library-tools{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 108px!important;
+    align-items:center!important;
+    gap:8px!important;
+    padding:9px!important;
+    border-radius:18px!important;
+    box-sizing:border-box!important;
+  }
+  .library-command-row .lib-search-wrap{
+    grid-column:1!important;
+    min-width:0!important;
+    width:100%!important;
+    height:44px!important;
+    min-height:44px!important;
+    margin:0!important;
+  }
+  .library-command-row .lib-search{
+    height:44px!important;
+    min-height:44px!important;
+    padding:0 12px 0 34px!important;
+    font-size:14px!important;
+    border-radius:14px!important;
+  }
+  .library-command-row .lib-search-icon{
+    left:13px!important;
+    top:50%!important;
+    transform:translateY(-50%)!important;
+    font-size:13px!important;
+  }
+  .library-command-row .lib-controls{
+    display:contents!important;
+  }
+  .library-command-row .lib-controls .lib-select,
+  .library-command-row .lib-controls .lib-filter-btn:nth-of-type(2),
+  .library-command-row .lib-controls .lib-filter-btn:nth-of-type(3),
+  .library-command-row .lib-controls .lib-count{
+    display:none!important;
+  }
+  .library-command-row .lib-controls .lib-filter-btn:nth-of-type(1){
+    grid-column:2!important;
+    width:108px!important;
+    min-width:0!important;
+    height:44px!important;
+    min-height:44px!important;
+    padding:0 8px!important;
+    margin:0!important;
+    border-radius:14px!important;
+    font-size:12px!important;
+    font-weight:850!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    white-space:nowrap!important;
+    box-sizing:border-box!important;
+  }
+
+  /* 모바일: 검색창 하단에 숏폼/롱폼/링크 추가/순서 변경 4개 버튼을 한 줄 배치 */
+  .library-command-row > .subtabs-row{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:6px!important;
+    align-items:stretch!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+  }
+  .library-command-row > .subtabs-row .subtabs-panel,
+  .library-command-row > .subtabs-row .content-toolbar,
+  .library-command-row > .subtabs-row .content-toolbar.action-toolbar{
+    display:contents!important;
+    width:auto!important;
+    min-width:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    box-shadow:none!important;
+    background:transparent!important;
+  }
+  .library-command-row > .subtabs-row .subtab,
+  .library-command-row > .subtabs-row .content-toolbar .content-add,
+  .library-command-row > .subtabs-row #btn-add.content-add,
+  .library-command-row > .subtabs-row .reorder-add.content-add{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:44px!important;
+    min-height:44px!important;
+    padding:0 4px!important;
+    margin:0!important;
+    border-radius:14px!important;
+    font-size:11.5px!important;
+    font-weight:900!important;
+    line-height:1!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+    box-sizing:border-box!important;
+  }
+  .library-command-row > .subtabs-row .subtab .subicon,
+  .library-command-row > .subtabs-row .content-add svg,
+  .library-command-row > .subtabs-row .reorder-add span[aria-hidden="true"]{
+    flex:0 0 auto!important;
+    font-size:12px!important;
+    width:auto!important;
+    height:auto!important;
+  }
+  .library-command-row > .subtabs-row .subcnt{
+    min-width:18px!important;
+    height:18px!important;
+    padding:0 5px!important;
+    font-size:10px!important;
+    flex:0 0 auto!important;
+  }
+  .library-command-row > .subtabs-row .btn-lbl{
+    display:inline!important;
+    min-width:0!important;
+  }
+}
+@media(max-width:390px){
+  .library-command-row > .library-tools.command-left,
+  .library-command-row > .library-tools{
+    grid-template-columns:minmax(0,1fr) 92px!important;
+    gap:6px!important;
+    padding:8px!important;
+  }
+  .library-command-row .lib-controls .lib-filter-btn:nth-of-type(1){
+    width:92px!important;
+    font-size:11px!important;
+    padding:0 6px!important;
+  }
+  .library-command-row > .subtabs-row{
+    gap:5px!important;
+  }
+  .library-command-row > .subtabs-row .subtab,
+  .library-command-row > .subtabs-row .content-toolbar .content-add,
+  .library-command-row > .subtabs-row #btn-add.content-add,
+  .library-command-row > .subtabs-row .reorder-add.content-add{
+    height:42px!important;
+    min-height:42px!important;
+    padding:0 3px!important;
+    border-radius:13px!important;
+    font-size:10.8px!important;
+    gap:2px!important;
+  }
+  .library-command-row > .subtabs-row .subcnt{
+    min-width:16px!important;
+    height:16px!important;
+    padding:0 4px!important;
+    font-size:9px!important;
+  }
+}
+</style>
+
 </body>
 </html>
