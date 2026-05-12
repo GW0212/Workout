@@ -6204,5 +6204,371 @@ body.dark .mobile-reorder-tools{
 })();
 </script>
 
+
+<!-- v39: mobile ellipsis fix + restored touch drag reorder with smooth edge scroll -->
+<style>
+/* 모바일 더보기 버튼이 한쪽으로 치우치거나 세로 점처럼 보이지 않도록 정사각형 중앙 정렬 */
+@media(max-width:900px){
+  .card-hd .cbtns.v28-card-actions{
+    top:10px!important;
+    right:10px!important;
+    height:38px!important;
+    gap:6px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+  }
+  .card-hd .cbtns.v28-card-actions .cbtn.icon,
+  .card-hd .cbtns.v28-card-actions .cbtn.more{
+    width:38px!important;
+    min-width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+    max-width:38px!important;
+    max-height:38px!important;
+    padding:0!important;
+    border-radius:13px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+    line-height:1!important;
+    flex:0 0 38px!important;
+    overflow:hidden!important;
+  }
+  .card-hd .cbtns.v28-card-actions .cbtn.more,
+  .cbtn.more{
+    font-size:0!important;
+    letter-spacing:0!important;
+  }
+  .card-hd .cbtns.v28-card-actions .cbtn.more::before,
+  .cbtn.more::before{
+    content:'…'!important;
+    position:absolute!important;
+    inset:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    height:100%!important;
+    font-size:24px!important;
+    font-weight:900!important;
+    line-height:1!important;
+    transform:translateY(-2px)!important;
+  }
+
+  /* 모바일도 PC처럼 터치로 위치 이동. 위/아래 버튼 UI는 제거 */
+  .mobile-reorder-tools{display:none!important;}
+  .grid:not([data-drag-disabled="1"]) .card{
+    cursor:grab!important;
+    -webkit-user-select:none!important;
+    user-select:none!important;
+  }
+  .grid:not([data-drag-disabled="1"]) .card .card-hd{
+    cursor:grab!important;
+  }
+  body.mobile-video-dragging,
+  body.mobile-video-dragging *{
+    -webkit-user-select:none!important;
+    user-select:none!important;
+  }
+  body.mobile-video-dragging iframe,
+  body.mobile-video-dragging .ytbox,
+  body.mobile-video-dragging .ytthumb{
+    pointer-events:none!important;
+  }
+  .mobile-drag-src{
+    opacity:.28!important;
+    filter:saturate(.75)!important;
+  }
+  .mobile-drag-ph{
+    min-height:112px!important;
+    border:2px dashed rgba(255,78,42,.45)!important;
+    background:rgba(255,78,42,.06)!important;
+    box-shadow:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border-radius:20px!important;
+  }
+  .mobile-drag-ph::after{
+    content:'여기에 이동';
+    color:var(--accent);
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:-.2px;
+  }
+  .mobile-drag-ghost{
+    position:fixed!important;
+    z-index:2147483600!important;
+    pointer-events:none!important;
+    width:min(260px, 70vw)!important;
+    min-height:82px!important;
+    padding:14px 16px!important;
+    border-radius:22px!important;
+    background:var(--surface)!important;
+    border:1.8px solid rgba(255,78,42,.38)!important;
+    box-shadow:0 24px 58px rgba(0,0,0,.22),0 0 0 8px rgba(255,78,42,.06)!important;
+    color:var(--text)!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+    transform:translate3d(-50%,-50%,0) scale(.98)!important;
+  }
+  .mobile-drag-ghost .mdg-pill{
+    height:24px;
+    padding:0 10px;
+    border-radius:999px;
+    background:rgba(255,78,42,.10);
+    border:1px solid rgba(255,78,42,.24);
+    color:var(--accent);
+    font-size:11px;
+    font-weight:900;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:8px;
+  }
+  .mobile-drag-ghost .mdg-title{
+    width:100%;
+    max-height:42px;
+    overflow:hidden;
+    font-size:13.5px;
+    font-weight:900;
+    line-height:1.35;
+    word-break:keep-all;
+    overflow-wrap:anywhere;
+  }
+  body.dark .mobile-drag-ghost{
+    border-color:rgba(255,122,87,.52)!important;
+    box-shadow:0 24px 58px rgba(0,0,0,.58),0 0 0 8px rgba(255,78,42,.10)!important;
+  }
+  body.dark .mobile-drag-ph{
+    border-color:rgba(255,122,87,.66)!important;
+    background:rgba(255,78,42,.13)!important;
+  }
+}
+
+/* 위치 변경/가져오기 완료 토스트는 항상 화면 중앙에 표시 */
+#center-toast.center-toast{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:22px!important;
+  z-index:2147483646!important;
+  pointer-events:none!important;
+  opacity:0;
+  transform:none!important;
+}
+#center-toast.center-toast.show{
+  opacity:1!important;
+  transform:none!important;
+}
+#center-toast.center-toast .toast-card{
+  margin:auto!important;
+  transform:none!important;
+  max-width:min(420px, calc(100vw - 36px))!important;
+}
+@media(max-width:768px){
+  #center-toast.center-toast{
+    height:100svh!important;
+    padding:18px!important;
+  }
+  #center-toast.center-toast .toast-card{
+    width:auto!important;
+    min-width:min(280px, calc(100vw - 48px))!important;
+    max-width:calc(100vw - 40px)!important;
+  }
+}
+</style>
+<script>
+/* v39: 모바일은 메뉴 버튼 방식이 아니라 카드 터치 이동으로 정렬한다. */
+(function(){
+  if(window.__WORKOUT_V39__) return;
+  window.__WORKOUT_V39__=true;
+
+  function isMobileUI(){
+    return window.matchMedia('(max-width: 900px)').matches || (('ontouchstart' in window || navigator.maxTouchPoints>0) && window.innerWidth<=980);
+  }
+  function isInteractiveTarget(el){
+    return !!(el && el.closest('button,a,iframe,input,select,textarea,summary,.ytthumb,.ytbox,.mclose,.share-btn,.cbtn,.tab,.subtab'));
+  }
+  function currentGrid(){ return document.querySelector('#ct > .grid') || document.querySelector('.grid'); }
+  function dragAllowed(card){
+    const grid=card&&card.closest('.grid');
+    if(!grid || grid.dataset.dragDisabled==='1' || card.dataset.dragDisabled==='1') return false;
+    return !!aid && Array.isArray(data.items && data.items[aid]);
+  }
+  function itemTypeById(id){
+    const arr=(data.items&&data.items[aid])||[];
+    const it=arr.find(x=>String(x.id)===String(id));
+    return it?videoTypeFromItem(it):(currentGrid()?.dataset.sub||'shorts');
+  }
+  function reorderFromGrid(grid, draggedId){
+    if(!grid || !aid || !Array.isArray(data.items[aid])) return false;
+    const cur=grid.dataset.sub || itemTypeById(draggedId);
+    const order=[...grid.children].map(el=>{
+      if(el.classList&&el.classList.contains('mobile-drag-ph')) return String(draggedId);
+      if(el.classList&&el.classList.contains('card')&&!el.classList.contains('mobile-drag-src')) return String(el.dataset.iid||'');
+      return '';
+    }).filter(Boolean);
+    if(order.length<1) return false;
+    const byId=new Map(data.items[aid].map(it=>[String(it.id),it]));
+    let cursor=0;
+    data.items[aid]=data.items[aid].map(it=>{
+      if(videoTypeFromItem(it)!==cur) return it;
+      const nextId=order[cursor++];
+      return byId.get(String(nextId)) || it;
+    });
+    save();
+    return true;
+  }
+
+  const md={down:false,on:false,card:null,ph:null,ghost:null,id:'',sx:0,sy:0,lx:0,ly:0,timer:null,scrollSpeed:0,raf:0};
+  function clearTimer(){ if(md.timer){clearTimeout(md.timer);md.timer=null;} }
+  function makeGhost(card,x,y){
+    const title=(card.querySelector('.card-ttl')?.textContent||'영상').trim();
+    const type=card.dataset.vtype||itemTypeById(card.dataset.iid);
+    const ghost=document.createElement('div');
+    ghost.className='mobile-drag-ghost';
+    ghost.innerHTML=`<div class="mdg-pill">${type==='shorts'?'⚡ 숏폼':'▶ 롱폼'}</div><div class="mdg-title">${esc(title)}</div>`;
+    ghost.style.left=x+'px';
+    ghost.style.top=y+'px';
+    document.body.appendChild(ghost);
+    return ghost;
+  }
+  function startDrag(x,y){
+    if(md.on || !md.card || !dragAllowed(md.card)) return;
+    const grid=md.card.closest('.grid');
+    if(!grid) return;
+    md.on=true; md.lx=x; md.ly=y;
+    const r=md.card.getBoundingClientRect();
+    const ph=document.createElement('div');
+    ph.className='card mobile-drag-ph';
+    ph.dataset.iid=md.id;
+    ph.dataset.vtype=md.card.dataset.vtype||itemTypeById(md.id);
+    ph.style.width=r.width+'px';
+    ph.style.height=Math.min(Math.max(112, r.height*.18), 180)+'px';
+    md.card.parentNode.insertBefore(ph, md.card.nextSibling);
+    md.ph=ph;
+    md.ghost=makeGhost(md.card,x,y);
+    md.card.classList.add('mobile-drag-src');
+    document.body.classList.add('mobile-video-dragging');
+    autoScrollLoop();
+    if(navigator.vibrate) { try{navigator.vibrate(8);}catch(e){} }
+  }
+  function setAutoScroll(y){
+    const edge=122;
+    const vh=window.innerHeight||document.documentElement.clientHeight||720;
+    let speed=0;
+    if(y<edge) speed=-Math.min(22, Math.max(6, Math.round((edge-y)/5)));
+    else if(y>vh-edge) speed=Math.min(22, Math.max(6, Math.round((y-(vh-edge))/5)));
+    md.scrollSpeed=speed;
+  }
+  function autoScrollLoop(){
+    if(!md.on){md.raf=0;return;}
+    if(md.scrollSpeed){
+      window.scrollBy(0,md.scrollSpeed);
+      movePlaceholder(md.lx,md.ly);
+    }
+    md.raf=requestAnimationFrame(autoScrollLoop);
+  }
+  function movePlaceholder(x,y){
+    const grid=currentGrid();
+    if(!grid || !md.ph) return;
+    const cards=[...grid.querySelectorAll('.card:not(.mobile-drag-src):not(.mobile-drag-ph):not(.rph)')];
+    if(!cards.length){grid.appendChild(md.ph);return;}
+    let before=null;
+    for(const el of cards){
+      const r=el.getBoundingClientRect();
+      if(y < r.top + r.height/2){ before=el; break; }
+    }
+    if(before) grid.insertBefore(md.ph,before);
+    else grid.appendChild(md.ph);
+  }
+  function cleanup(){
+    clearTimer();
+    if(md.raf) cancelAnimationFrame(md.raf);
+    if(md.card) md.card.classList.remove('mobile-drag-src');
+    if(md.ph&&md.ph.parentNode) md.ph.parentNode.removeChild(md.ph);
+    if(md.ghost&&md.ghost.parentNode) md.ghost.parentNode.removeChild(md.ghost);
+    document.body.classList.remove('mobile-video-dragging');
+    Object.assign(md,{down:false,on:false,card:null,ph:null,ghost:null,id:'',sx:0,sy:0,lx:0,ly:0,timer:null,scrollSpeed:0,raf:0});
+  }
+
+  /* document 레벨 기존 pointer 드래그보다 먼저 차단해서 모바일에서 두 정렬 로직이 동시에 돌지 않게 한다. */
+  window.addEventListener('pointerdown',function(e){
+    if(!isMobileUI()) return;
+    const card=e.target.closest&&e.target.closest('.grid .card');
+    if(!card || isInteractiveTarget(e.target)) return;
+    e.stopPropagation();
+  },true);
+
+  document.addEventListener('touchstart',function(e){
+    if(!isMobileUI() || e.touches.length!==1) return;
+    const card=e.target.closest&&e.target.closest('.grid .card');
+    if(!card || card.classList.contains('rph') || card.classList.contains('mobile-drag-ph') || !dragAllowed(card)) return;
+    if(isInteractiveTarget(e.target)) return;
+    clearTimer();
+    const t=e.touches[0];
+    md.down=true; md.on=false; md.card=card; md.id=String(card.dataset.iid||''); md.sx=t.clientX; md.sy=t.clientY; md.lx=t.clientX; md.ly=t.clientY;
+    md.timer=setTimeout(()=>startDrag(md.sx,md.sy),260);
+  },{capture:true,passive:true});
+
+  document.addEventListener('touchmove',function(e){
+    if(!isMobileUI() || !md.down || e.touches.length!==1) return;
+    const t=e.touches[0];
+    const dx=t.clientX-md.sx, dy=t.clientY-md.sy;
+    md.lx=t.clientX; md.ly=t.clientY;
+    if(!md.on){
+      if(Math.hypot(dx,dy)>12){ cleanup(); }
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    if(md.ghost){ md.ghost.style.left=t.clientX+'px'; md.ghost.style.top=t.clientY+'px'; }
+    setAutoScroll(t.clientY);
+    movePlaceholder(t.clientX,t.clientY);
+  },{capture:true,passive:false});
+
+  function finish(e){
+    if(!isMobileUI() || !md.down) return;
+    const wasOn=md.on;
+    const id=md.id;
+    const grid=currentGrid();
+    if(wasOn && e){ e.preventDefault(); e.stopPropagation(); }
+    if(wasOn){
+      const ok=reorderFromGrid(grid,id);
+      cleanup();
+      render();
+      requestAnimationFrame(()=>{
+        const card=document.querySelector(`.card[data-iid="${CSS.escape(String(id))}"]`);
+        if(card) card.scrollIntoView({block:'center',inline:'nearest',behavior:'smooth'});
+      });
+      if(ok && typeof showCenterToast==='function') showCenterToast('영상 위치 변경 완료','현재 탭 안에서 영상 순서를 저장했습니다.');
+    }else cleanup();
+  }
+  document.addEventListener('touchend',finish,{capture:true,passive:false});
+  document.addEventListener('touchcancel',function(e){ if(md.down){ if(md.on){e.preventDefault();e.stopPropagation();} cleanup(); } },{capture:true,passive:false});
+
+  /* 기존 모바일 관리 메뉴에 삽입되던 위/아래 이동 박스는 제거 */
+  const prevOpen=window.openItemActions;
+  if(typeof prevOpen==='function'){
+    window.openItemActions=function(){
+      prevOpen.apply(this,arguments);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        document.querySelectorAll('.mobile-reorder-tools').forEach(el=>el.remove());
+      }));
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
