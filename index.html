@@ -5976,5 +5976,233 @@ body.dragging .dghost .linkrow{display:none!important;}
 })();
 </script>
 
+
+
+<!-- v38: mobile action consistency + non-drag video reorder UX -->
+<style>
+/* 모바일 카드 버튼을 숏폼/롱폼 동일한 3개 아이콘 구조로 고정 */
+.card-hd .cbtns.v28-card-actions{
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+}
+@media(max-width:900px){
+  .card-hd{
+    min-height:82px!important;
+    padding:10px 12px 13px!important;
+  }
+  .card-hd .cbtns.v28-card-actions{
+    top:10px!important;
+    right:10px!important;
+    gap:6px!important;
+    max-width:none!important;
+    width:auto!important;
+    height:34px!important;
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+  }
+  .card-hd .cbtns.v28-card-actions .pc-only{
+    display:none!important;
+  }
+  .card-hd .cbtns.v28-card-actions .cbtn.icon,
+  .card-hd .cbtns.v28-card-actions .cbtn.more{
+    width:34px!important;
+    min-width:34px!important;
+    height:34px!important;
+    min-height:34px!important;
+    padding:0!important;
+    border-radius:12px!important;
+    font-size:12px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+    flex:0 0 34px!important;
+  }
+  .card-hd .cbtns.v28-card-actions .cbtn.more::before{
+    font-size:19px!important;
+    transform:translateY(-1px)!important;
+  }
+  .card-hd .type-pill{
+    top:13px!important;
+    left:12px!important;
+    height:28px!important;
+    max-width:calc(100% - 140px)!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+  }
+  .card[data-fav="1"] .card-hd .type-pill{
+    left:42px!important;
+    max-width:calc(100% - 170px)!important;
+  }
+  .fav-badge{
+    top:13px!important;
+    left:12px!important;
+    width:26px!important;
+    height:26px!important;
+  }
+  .card-ttl,
+  .card[data-vtype="shorts"] .card-ttl,
+  .card[data-vtype="longform"] .card-ttl{
+    padding-top:43px!important;
+    width:100%!important;
+    text-align:center!important;
+    font-size:14px!important;
+    line-height:1.42!important;
+    word-break:keep-all!important;
+    overflow-wrap:anywhere!important;
+  }
+  .card[data-vtype="shorts"] .card-hd,
+  .card[data-vtype="longform"] .card-hd{
+    min-height:82px!important;
+  }
+  /* 모바일에서는 드래그 정렬 대신 더보기 메뉴의 위/아래 이동을 사용 */
+  .grid:not([data-drag-disabled="1"]) .card{
+    cursor:default!important;
+  }
+}
+
+.mobile-reorder-tools{
+  display:none;
+  border:1.5px solid rgba(255,78,42,.22);
+  background:rgba(255,78,42,.06);
+  border-radius:16px;
+  padding:12px;
+  gap:10px;
+}
+.mobile-reorder-title{
+  font-size:12px;
+  font-weight:900;
+  color:var(--accent);
+  margin-bottom:8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.mobile-reorder-title span{
+  color:var(--tsub);
+  font-size:11.5px;
+  font-weight:800;
+}
+.mobile-reorder-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.mobile-reorder-row .share-btn{
+  min-height:42px;
+}
+.mobile-reorder-row .share-btn:disabled{
+  opacity:.38!important;
+  cursor:not-allowed!important;
+}
+body.dark .mobile-reorder-tools{
+  border-color:rgba(255,122,87,.38);
+  background:rgba(255,78,42,.10);
+}
+@media(max-width:900px){
+  .mobile-reorder-tools{display:block;}
+}
+</style>
+<script>
+/* v38: 모바일 영상 순서 변경은 드래그 대신 관리 메뉴의 위/아래 이동으로 처리 */
+(function(){
+  if(window.__WORKOUT_V38__) return;
+  window.__WORKOUT_V38__=true;
+
+  function isMobileUI(){
+    return window.matchMedia('(max-width: 900px)').matches || ('ontouchstart' in window && window.innerWidth <= 980);
+  }
+  function findVideo(mid,iid){
+    const arr=(window.data&&data.items&&data.items[mid])||[];
+    const idx=arr.findIndex(x=>String(x.id)===String(iid));
+    return {arr,idx,it:idx>=0?arr[idx]:null};
+  }
+  function sameTypeIndexes(mid,iid){
+    const found=findVideo(mid,iid);
+    if(!found.it) return {arr:found.arr,idx:-1,pos:-1,idxs:[],type:'longform'};
+    const type=videoTypeFromItem(found.it);
+    const idxs=[];
+    found.arr.forEach((x,i)=>{ if(videoTypeFromItem(x)===type) idxs.push(i); });
+    return {arr:found.arr,idx:found.idx,pos:idxs.indexOf(found.idx),idxs,type};
+  }
+  window.moveVideoOnMobile=function(iid,mid,dir){
+    const info=sameTypeIndexes(mid,iid);
+    if(info.pos<0) return;
+    const nextPos=info.pos + (dir<0?-1:1);
+    if(nextPos<0 || nextPos>=info.idxs.length){
+      showCenterToast(dir<0?'이미 첫 번째 영상입니다.':'이미 마지막 영상입니다.');
+      return;
+    }
+    const a=info.idxs[info.pos];
+    const b=info.idxs[nextPos];
+    const tmp=info.arr[a];
+    info.arr[a]=info.arr[b];
+    info.arr[b]=tmp;
+    try{ save(); }catch(e){}
+    closeModal('m-item-actions');
+    render();
+    requestAnimationFrame(()=>{
+      const card=document.querySelector(`.card[data-iid="${CSS.escape(String(iid))}"]`);
+      if(card) card.scrollIntoView({block:'center',inline:'nearest',behavior:'smooth'});
+    });
+    showCenterToast('영상 위치 변경 완료', `${SUBS[info.type]?.label||'영상'} 순서를 변경했습니다.`);
+  };
+
+  // 기존 관리 모달을 그대로 쓰되 모바일 전용 순서 변경 버튼을 삽입한다.
+  const prevOpen=window.openItemActions;
+  if(typeof prevOpen==='function'){
+    window.openItemActions=function(iid,mid){
+      prevOpen.apply(this,arguments);
+      requestAnimationFrame(()=>{
+        const modal=document.querySelector('#m-item-actions .item-action-list');
+        if(!modal || modal.querySelector('.mobile-reorder-tools')) return;
+        const info=sameTypeIndexes(mid,iid);
+        const typeLabel=SUBS[info.type]?.label||'영상';
+        const canUp=info.pos>0;
+        const canDown=info.pos>=0 && info.pos<info.idxs.length-1;
+        const box=document.createElement('div');
+        box.className='mobile-reorder-tools';
+        box.innerHTML=`
+          <div class="mobile-reorder-title">모바일 위치 변경 <span>${typeLabel} ${Math.max(0,info.pos+1)}/${info.idxs.length}</span></div>
+          <div class="mobile-reorder-row">
+            <button class="share-btn" type="button" ${canUp?'':'disabled'} onclick='moveVideoOnMobile(${JSON.stringify(String(iid))},${JSON.stringify(String(mid))},-1)'>↑ 위로 이동</button>
+            <button class="share-btn" type="button" ${canDown?'':'disabled'} onclick='moveVideoOnMobile(${JSON.stringify(String(iid))},${JSON.stringify(String(mid))},1)'>↓ 아래로 이동</button>
+          </div>`;
+        const after=modal.querySelector('.action-fixed-type');
+        if(after) after.insertAdjacentElement('afterend',box);
+        else modal.insertAdjacentElement('afterbegin',box);
+      });
+    };
+  }
+
+  // 모바일에서 카드 자체를 길게 누르거나 끌어서 정렬하지 않도록 원천 차단한다.
+  document.addEventListener('pointerdown',function(e){
+    if(!isMobileUI()) return;
+    const card=e.target.closest('.grid .card');
+    if(!card) return;
+    if(e.target.closest('button,a,iframe,.ytthumb,input,select,textarea,summary')) return;
+    e.stopImmediatePropagation();
+    try{ if(typeof cleanDrag==='function') cleanDrag(); }catch(_e){}
+  },true);
+
+  document.addEventListener('touchmove',function(e){
+    if(!isMobileUI()) return;
+    const card=e.target.closest('.grid .card');
+    if(!card) return;
+    if(document.body.classList.contains('dragging')){
+      e.stopImmediatePropagation();
+      try{ if(typeof cleanDrag==='function') cleanDrag(); }catch(_e){}
+    }
+  },{capture:true,passive:true});
+})();
+</script>
+
 </body>
 </html>
