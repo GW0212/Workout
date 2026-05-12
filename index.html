@@ -6907,31 +6907,55 @@ body.dark .mobile-reorder-tools{
 
 
 
-<!-- v42: mobile long-press video reorder fix + Safari-like edge autoscroll -->
+
+<!-- v43: mobile drag reorder rebuilt for Safari/Chrome touch stability -->
 <style>
 @media(max-width:900px){
-  body.v42-video-dragging,
-  body.v42-video-dragging *{
+  /* 카드 헤더는 모바일에서 순서 변경 시작 영역으로 사용한다. */
+  #ct .grid .card,
+  #ct .grid .card *{
+    -webkit-touch-callout:none!important;
+  }
+  #ct .grid .card .card-hd,
+  #ct .grid .card .card-main,
+  #ct .grid .card .card-ttl,
+  #ct .grid .card .type-pill{
+    touch-action:none!important;
+    -webkit-user-select:none!important;
+    user-select:none!important;
+  }
+  #ct .grid .card .ytbox,
+  #ct .grid .card iframe,
+  #ct .grid .card .ytthumb{
+    touch-action:manipulation!important;
+  }
+
+  body.v43-video-dragging,
+  body.v43-video-dragging *{
     -webkit-user-select:none!important;
     user-select:none!important;
     -webkit-touch-callout:none!important;
   }
-  body.v42-video-dragging{
+  body.v43-video-dragging{
     overscroll-behavior:none!important;
     touch-action:none!important;
+    cursor:grabbing!important;
   }
-  body.v42-video-dragging iframe,
-  body.v42-video-dragging .ytbox,
-  body.v42-video-dragging .ytthumb,
-  body.v42-video-dragging .ytplay{
+  body.v43-video-dragging iframe,
+  body.v43-video-dragging .ytbox,
+  body.v43-video-dragging .ytthumb,
+  body.v43-video-dragging .ytplay{
     pointer-events:none!important;
   }
-  .v42-src{visibility:hidden!important;opacity:0!important;}
-  .v42-ph{
+
+  .v43-src{
+    display:none!important;
+  }
+  .v43-ph{
     width:auto!important;
     min-width:0!important;
-    border:2px dashed rgba(255,78,42,.54)!important;
-    background:rgba(255,78,42,.075)!important;
+    border:2px dashed rgba(255,78,42,.58)!important;
+    background:rgba(255,78,42,.08)!important;
     border-radius:20px!important;
     box-shadow:none!important;
     display:flex!important;
@@ -6939,17 +6963,19 @@ body.dark .mobile-reorder-tools{
     justify-content:center!important;
     overflow:hidden!important;
     opacity:1!important;
+    animation:none!important;
   }
-  .v42-ph::after{
+  .v43-ph::after{
     content:'여기에 이동';
     color:var(--accent);
     font-size:12.5px;
     font-weight:900;
     letter-spacing:-.2px;
   }
-  .grid[data-sub="shorts"] .v42-ph{min-height:132px!important;height:132px!important;}
-  .grid[data-sub="longform"] .v42-ph{min-height:126px!important;height:126px!important;}
-  .v42-ghost{
+  .grid[data-sub="shorts"] .v43-ph{min-height:136px!important;height:136px!important;}
+  .grid[data-sub="longform"] .v43-ph{min-height:132px!important;height:132px!important;}
+
+  .v43-ghost{
     position:fixed!important;
     left:0;top:0;
     z-index:2147483646!important;
@@ -6957,8 +6983,8 @@ body.dark .mobile-reorder-tools{
     max-width:calc(100vw - 28px)!important;
     transform:translate3d(-50%,-50%,0)!important;
     pointer-events:none!important;
-    border:1.5px solid rgba(255,78,42,.55)!important;
-    background:rgba(255,255,255,.97)!important;
+    border:1.6px solid rgba(255,78,42,.58)!important;
+    background:rgba(255,255,255,.98)!important;
     color:var(--text)!important;
     border-radius:18px!important;
     box-shadow:0 18px 48px rgba(0,0,0,.22),0 0 0 9999px rgba(0,0,0,.018)!important;
@@ -6972,43 +6998,46 @@ body.dark .mobile-reorder-tools{
     opacity:.98!important;
     will-change:left,top!important;
   }
-  body.dark .v42-ghost{
+  body.dark .v43-ghost{
     background:rgba(24,24,24,.98)!important;
-    border-color:rgba(255,122,87,.72)!important;
+    border-color:rgba(255,122,87,.76)!important;
     box-shadow:0 18px 50px rgba(0,0,0,.65),0 0 0 9999px rgba(0,0,0,.04)!important;
   }
-  .v42-ghost .v42-pill{
+  .v43-ghost .v43-pill{
     height:26px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;
     border-radius:999px;border:1.5px solid rgba(255,78,42,.28);background:rgba(255,78,42,.08);
     color:var(--accent);font-size:12px;font-weight:900;white-space:nowrap;
   }
-  .v42-ghost .v42-title{
+  .v43-ghost .v43-title{
     width:100%;font-size:14px;font-weight:900;line-height:1.35;letter-spacing:-.35px;
     word-break:keep-all;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   }
-  .v42-edge-hint{
+  .v43-edge-hint{
     position:fixed;left:50%;transform:translateX(-50%);z-index:2147483645;
     height:34px;min-width:132px;padding:0 14px;border-radius:999px;background:rgba(255,78,42,.94);color:#fff;
     box-shadow:0 8px 28px rgba(255,78,42,.32);display:none;align-items:center;justify-content:center;
     font-size:12px;font-weight:900;pointer-events:none;
   }
-  body.v42-video-dragging .v42-edge-hint.on{display:flex;}
-  .v42-edge-hint.top{top:calc(env(safe-area-inset-top,0px) + 12px);}
-  .v42-edge-hint.bottom{bottom:calc(env(safe-area-inset-bottom,0px) + 88px);}
+  body.v43-video-dragging .v43-edge-hint.on{display:flex;}
+  .v43-edge-hint.top{top:calc(env(safe-area-inset-top,0px) + 12px);}
+  .v43-edge-hint.bottom{bottom:calc(env(safe-area-inset-bottom,0px) + 96px);}
 }
 </style>
 <script>
-/* v42: 모바일 롱클릭 정렬 취소 방지 + 상/하단 자동 스크롤 안정화 */
+/* v43: 모바일 영상 순서 변경 전용 로직. 기존 touch drag와 충돌하지 않도록 v42 이후 최종 적용. */
 (function(){
-  if(window.__WORKOUT_V42__) return;
-  window.__WORKOUT_V42__=true;
+  if(window.__WORKOUT_V43__) return;
+  window.__WORKOUT_V43__=true;
 
-  const LONG_PRESS_MS=300;
-  const CANCEL_DISTANCE=34;
-  const st={down:false,on:false,card:null,grid:null,ph:null,ghost:null,id:'',type:'shorts',sx:0,sy:0,x:0,y:0,timer:0,raf:0,speed:0,startedAt:0,lockedScrollY:0};
+  const PRESS_MS=210;
+  const EARLY_SCROLL_CANCEL=70;
+  const QUICK_DRAG_MS=120;
+  const QUICK_DRAG_DISTANCE=10;
+  const st={down:false,on:false,card:null,grid:null,ph:null,ghost:null,id:'',type:'shorts',sx:0,sy:0,x:0,y:0,timer:0,raf:0,speed:0,startedAt:0};
 
   function isMobileUI(){return matchMedia('(max-width:900px)').matches || ((navigator.maxTouchPoints||0)>0 && innerWidth<=980);}
-  function isBlockedTarget(el){return !!(el&&el.closest('button,a,input,select,textarea,summary,.cbtn,.tmbtn,.tab,.subtab,.mclose,.share-btn,.modal,.ov,#btn-top,#btn-add'))}
+  function isActionTarget(el){return !!(el&&el.closest('button,a,input,select,textarea,summary,.cbtn,.tmbtn,.tab,.subtab,.mclose,.share-btn,.modal,.ov,#btn-top,#btn-add'));}
+  function isHeaderTarget(el){return !!(el&&el.closest('.card-hd,.card-main,.card-ttl,.type-pill'));}
   function pageEl(){return document.scrollingElement||document.documentElement||document.body;}
   function pageTop(){const el=pageEl();return el.scrollTop||window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0;}
   function pageMax(){const el=pageEl();return Math.max(0,(el.scrollHeight||document.body.scrollHeight||0)-(innerHeight||document.documentElement.clientHeight||0));}
@@ -7019,9 +7048,9 @@ body.dark .mobile-reorder-tools{
     try{document.documentElement.scrollTop=next;document.body.scrollTop=next;}catch(e){}
     try{window.scrollTo(0,next);}catch(e){}
   }
-  function gridOf(card){return card&&card.closest('#ct > .grid, .grid');}
   function activeGrid(){return document.querySelector('#ct > .grid')||document.querySelector('.grid');}
-  function canDrag(card){const grid=gridOf(card);return !!(grid&&card&&card.dataset.dragDisabled!=='1'&&grid.dataset.dragDisabled!=='1'&&window.aid&&data&&data.items&&Array.isArray(data.items[aid]));}
+  function gridOf(card){return card&&card.closest('#ct > .grid, .grid');}
+  function canDrag(card){const grid=gridOf(card);return !!(grid&&card&&card.dataset.dragDisabled!=='1'&&grid.dataset.dragDisabled!=='1'&&window.aid&&window.data&&data.items&&Array.isArray(data.items[aid]));}
   function typeFor(id,card){
     if(card&&card.dataset.vtype) return card.dataset.vtype;
     const arr=(data.items&&data.items[aid])||[];
@@ -7030,50 +7059,47 @@ body.dark .mobile-reorder-tools{
   }
   function labelFor(type){return type==='shorts'?'⚡ 숏폼':'▶ 롱폼';}
   function escLocal(s){try{return typeof esc==='function'?esc(s):String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}catch(e){return String(s||'');}}
-  function touchPoint(e){const t=e.touches&&e.touches[0] || e.changedTouches&&e.changedTouches[0];return t?{x:t.clientX,y:t.clientY}:null;}
-
-  function ensureHints(){
-    let top=document.getElementById('v42-edge-top');
-    let bottom=document.getElementById('v42-edge-bottom');
-    if(!top){top=document.createElement('div');top.id='v42-edge-top';top.className='v42-edge-hint top';top.textContent='위로 이동 중';document.body.appendChild(top);}
-    if(!bottom){bottom=document.createElement('div');bottom.id='v42-edge-bottom';bottom.className='v42-edge-hint bottom';bottom.textContent='아래로 이동 중';document.body.appendChild(bottom);}
-    return {top,bottom};
-  }
-  function clearForeignDrag(){
-    try{if(typeof cleanDrag==='function') cleanDrag();}catch(e){}
-    document.querySelectorAll('.dghost,.rph,.mobile-drag-ghost,.mobile-drag-ph,.v40-ghost,.v40-ph,.v41-ghost,.v41-ph').forEach(el=>{try{el.remove();}catch(_){}});
-    document.querySelectorAll('.dsrc,.mobile-drag-src,.v40-src,.v41-src').forEach(el=>el.classList.remove('dsrc','mobile-drag-src','v40-src','v41-src'));
-    document.body.classList.remove('dragging','mobile-video-dragging','v41-video-dragging');
-  }
+  function pnt(e){const t=e.touches&&e.touches[0] || e.changedTouches&&e.changedTouches[0];return t?{x:t.clientX,y:t.clientY}:null;}
   function stopTimer(){if(st.timer){clearTimeout(st.timer);st.timer=0;}}
 
-  function makeGhost(card,x,y){
-    const title=(card.querySelector('.card-ttl')?.textContent||card.querySelector('.linkrow a')?.textContent||'영상').trim();
+  function ensureHints(){
+    let top=document.getElementById('v43-edge-top');
+    let bottom=document.getElementById('v43-edge-bottom');
+    if(!top){top=document.createElement('div');top.id='v43-edge-top';top.className='v43-edge-hint top';top.textContent='위로 이동 중';document.body.appendChild(top);}
+    if(!bottom){bottom=document.createElement('div');bottom.id='v43-edge-bottom';bottom.className='v43-edge-hint bottom';bottom.textContent='아래로 이동 중';document.body.appendChild(bottom);}
+    return {top,bottom};
+  }
+  function clearOldDrag(){
+    try{if(typeof cleanDrag==='function') cleanDrag();}catch(e){}
+    document.querySelectorAll('.dghost,.rph,.mobile-drag-ghost,.mobile-drag-ph,.v40-ghost,.v40-ph,.v41-ghost,.v41-ph,.v42-ghost,.v42-ph').forEach(el=>{try{el.remove();}catch(_){};});
+    document.querySelectorAll('.dsrc,.mobile-drag-src,.v40-src,.v41-src,.v42-src').forEach(el=>el.classList.remove('dsrc','mobile-drag-src','v40-src','v41-src','v42-src'));
+    document.body.classList.remove('dragging','mobile-video-dragging','v41-video-dragging','v42-video-dragging');
+  }
+  function makeGhost(){
+    const title=(st.card.querySelector('.card-ttl')?.textContent||st.card.querySelector('.linkrow a')?.textContent||'영상').trim();
     const g=document.createElement('div');
-    g.className='v42-ghost';
-    g.innerHTML='<div class="v42-pill">'+labelFor(st.type)+'</div><div class="v42-title">'+escLocal(title)+'</div>';
-    g.style.left=x+'px';g.style.top=y+'px';
+    g.className='v43-ghost';
+    g.innerHTML='<div class="v43-pill">'+labelFor(st.type)+'</div><div class="v43-title">'+escLocal(title)+'</div>';
+    g.style.left=st.x+'px';g.style.top=st.y+'px';
     document.body.appendChild(g);
     return g;
   }
   function startDrag(){
     if(st.on||!st.card||!canDrag(st.card)) return;
-    clearForeignDrag();
+    clearOldDrag();
     st.grid=gridOf(st.card); if(!st.grid) return;
     st.type=typeFor(st.id,st.card);
     const r=st.card.getBoundingClientRect();
     const ph=document.createElement('div');
-    ph.className='card v42-ph';
-    ph.dataset.iid=st.id;ph.dataset.vtype=st.type;
-    const h=st.type==='shorts'?Math.min(152,Math.max(124,Math.round(r.height*.32))):Math.min(138,Math.max(116,Math.round(r.height*.27)));
-    ph.style.height=h+'px';
+    ph.className='card v43-ph';
+    ph.dataset.iid=st.id; ph.dataset.vtype=st.type;
+    ph.style.height=(st.type==='shorts'?136:132)+'px';
     st.card.parentNode.insertBefore(ph,st.card);
     st.ph=ph;
-    st.ghost=makeGhost(st.card,st.x,st.y);
-    st.card.classList.add('v42-src');
-    document.body.classList.add('v42-video-dragging');
+    st.ghost=makeGhost();
+    st.card.classList.add('v43-src');
+    document.body.classList.add('v43-video-dragging');
     st.on=true;
-    st.lockedScrollY=pageTop();
     updateSpeed(st.y);
     movePlaceholder(st.x,st.y);
     loop();
@@ -7082,11 +7108,11 @@ body.dark .mobile-reorder-tools{
   function updateSpeed(y){
     const vv=window.visualViewport;
     const vh=vv?.height||innerHeight||document.documentElement.clientHeight||720;
-    const topEdge=Math.max(120,Math.min(190,vh*.24));
-    const bottomEdge=Math.max(150,Math.min(250,vh*.30));
+    const topEdge=Math.max(115,Math.min(190,vh*.24));
+    const bottomEdge=Math.max(160,Math.min(270,vh*.32));
     let speed=0;
-    if(y<topEdge){const p=Math.min(1,Math.max(0,(topEdge-y)/topEdge));speed=-(12+Math.round(p*42));}
-    else if(y>vh-bottomEdge){const p=Math.min(1,Math.max(0,(y-(vh-bottomEdge))/bottomEdge));speed=12+Math.round(p*46);}
+    if(y<topEdge){const p=Math.min(1,Math.max(0,(topEdge-y)/topEdge));speed=-(14+Math.round(p*54));}
+    else if(y>vh-bottomEdge){const p=Math.min(1,Math.max(0,(y-(vh-bottomEdge))/bottomEdge));speed=14+Math.round(p*58);}
     st.speed=speed;
     const hints=ensureHints();
     hints.top.classList.toggle('on',speed<0);
@@ -7105,14 +7131,15 @@ body.dark .mobile-reorder-tools{
   function movePlaceholder(x,y){
     const grid=st.grid||activeGrid();
     if(!grid||!st.ph) return;
-    const cards=[...grid.querySelectorAll('.card:not(.v42-src):not(.v42-ph):not(.v41-src):not(.v41-ph):not(.rph):not(.mobile-drag-ph):not(.mobile-drag-src):not(.v40-ph):not(.v40-src)')];
+    const cards=[...grid.querySelectorAll('.card:not(.v43-src):not(.v43-ph):not(.v42-src):not(.v42-ph):not(.v41-src):not(.v41-ph):not(.rph):not(.mobile-drag-ph):not(.mobile-drag-src):not(.v40-ph):not(.v40-src)')];
     if(!cards.length){grid.appendChild(st.ph);return;}
     let before=null;
     for(const el of cards){
       const r=el.getBoundingClientRect();
-      const sameRow=y>=r.top-28&&y<=r.bottom+28;
-      if(sameRow){if(x<r.left+r.width/2){before=el;break;}}
-      else if(y<r.top+r.height/2){before=el;break;}
+      const sameRow=y>=r.top-34&&y<=r.bottom+34;
+      if(sameRow){
+        if(x<r.left+r.width/2){before=el;break;}
+      }else if(y<r.top+r.height/2){before=el;break;}
     }
     if(before) grid.insertBefore(st.ph,before); else grid.appendChild(st.ph);
   }
@@ -7121,8 +7148,8 @@ body.dark .mobile-reorder-tools{
     const order=[];const seen=new Set();
     [...grid.children].forEach(el=>{
       let id='';
-      if(el.classList&&el.classList.contains('v42-ph')) id=String(st.id);
-      else if(el.classList&&el.classList.contains('card')&&!el.classList.contains('v42-src')&&!el.classList.contains('v41-src')&&!el.classList.contains('rph')&&!el.classList.contains('mobile-drag-ph')) id=String(el.dataset.iid||'');
+      if(el.classList&&el.classList.contains('v43-ph')) id=String(st.id);
+      else if(el.classList&&el.classList.contains('card')&&!el.classList.contains('v43-src')&&!el.classList.contains('v42-src')&&!el.classList.contains('v41-src')&&!el.classList.contains('rph')&&!el.classList.contains('mobile-drag-ph')) id=String(el.dataset.iid||'');
       if(id&&!seen.has(id)){seen.add(id);order.push(id);}
     });
     if(order.length<1) return false;
@@ -7139,35 +7166,37 @@ body.dark .mobile-reorder-tools{
   function cleanup(){
     stopTimer();
     if(st.raf) cancelAnimationFrame(st.raf);
-    if(st.card) st.card.classList.remove('v42-src');
+    if(st.card) st.card.classList.remove('v43-src');
     if(st.ph&&st.ph.parentNode) st.ph.parentNode.removeChild(st.ph);
     if(st.ghost&&st.ghost.parentNode) st.ghost.parentNode.removeChild(st.ghost);
-    document.body.classList.remove('v42-video-dragging');
+    document.body.classList.remove('v43-video-dragging');
     const hints=ensureHints();hints.top.classList.remove('on');hints.bottom.classList.remove('on');
-    Object.assign(st,{down:false,on:false,card:null,grid:null,ph:null,ghost:null,id:'',type:'shorts',sx:0,sy:0,x:0,y:0,timer:0,raf:0,speed:0,startedAt:0,lockedScrollY:0});
+    Object.assign(st,{down:false,on:false,card:null,grid:null,ph:null,ghost:null,id:'',type:'shorts',sx:0,sy:0,x:0,y:0,timer:0,raf:0,speed:0,startedAt:0});
   }
-
   function touchStart(e){
     if(!isMobileUI()||!e.touches||e.touches.length!==1) return;
     const card=e.target.closest&&e.target.closest('#ct .grid .card');
-    if(!card||card.classList.contains('v42-ph')||card.classList.contains('rph')||!canDrag(card)) return;
-    if(isBlockedTarget(e.target)) return;
-    const p=touchPoint(e); if(!p) return;
-    st.down=true;st.on=false;st.card=card;st.grid=gridOf(card);st.id=String(card.dataset.iid||'');st.type=typeFor(st.id,card);st.sx=p.x;st.sy=p.y;st.x=p.x;st.y=p.y;st.startedAt=Date.now();
+    if(!card||card.classList.contains('v43-ph')||card.classList.contains('rph')||!canDrag(card)||isActionTarget(e.target)) return;
+    const point=pnt(e); if(!point) return;
+    st.down=true;st.on=false;st.card=card;st.grid=gridOf(card);st.id=String(card.dataset.iid||'');st.type=typeFor(st.id,card);st.sx=point.x;st.sy=point.y;st.x=point.x;st.y=point.y;st.startedAt=Date.now();
     stopTimer();
-    st.timer=setTimeout(startDrag,LONG_PRESS_MS);
+    st.timer=setTimeout(startDrag,PRESS_MS);
+    if(isHeaderTarget(e.target)){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
   }
   function touchMove(e){
     if(!isMobileUI()||!st.down||!e.touches||e.touches.length!==1) return;
-    const p=touchPoint(e); if(!p) return;
-    st.x=p.x;st.y=p.y;
+    const point=pnt(e); if(!point) return;
+    st.x=point.x;st.y=point.y;
+    const dist=Math.hypot(st.x-st.sx,st.y-st.sy);
+    const held=Date.now()-st.startedAt;
     if(!st.on){
-      const dist=Math.hypot(st.x-st.sx,st.y-st.sy);
-      const held=Date.now()-st.startedAt;
-      if(held>=LONG_PRESS_MS-40){
+      if(held>=PRESS_MS-40 || (held>=QUICK_DRAG_MS && dist>=QUICK_DRAG_DISTANCE)){
         stopTimer();
         startDrag();
-      }else if(dist>CANCEL_DISTANCE){
+      }else if(dist>EARLY_SCROLL_CANCEL && held<QUICK_DRAG_MS){
         cleanup();
         return;
       }else{
@@ -7176,7 +7205,7 @@ body.dark .mobile-reorder-tools{
       if(!st.on) return;
     }
     e.preventDefault();
-    e.stopPropagation();
+    e.stopImmediatePropagation();
     if(st.ghost){st.ghost.style.left=st.x+'px';st.ghost.style.top=st.y+'px';}
     updateSpeed(st.y);
     movePlaceholder(st.x,st.y);
@@ -7184,7 +7213,7 @@ body.dark .mobile-reorder-tools{
   function touchEnd(e){
     if(!isMobileUI()||!st.down) return;
     const was=st.on;let ok=false;const id=st.id;
-    if(was){e.preventDefault();e.stopPropagation();ok=reorder();}
+    if(was){e.preventDefault();e.stopImmediatePropagation();ok=reorder();}
     cleanup();
     if(was){
       try{render();}catch(err){}
@@ -7192,25 +7221,24 @@ body.dark .mobile-reorder-tools{
       if(ok&&typeof showCenterToast==='function') showCenterToast('영상 위치 변경 완료','현재 탭 안에서 영상 순서를 저장했습니다.');
     }
   }
-  function touchCancel(){if(st.down) cleanup();}
-
-  /* 이전 PC용/구버전 pointer 드래그와 충돌하지 않도록 모바일 카드 pointerdown은 선점한다. */
+  function touchCancel(e){if(st.down){if(st.on){e.preventDefault();e.stopImmediatePropagation();} cleanup();}}
   function blockLegacyPointer(e){
     if(!isMobileUI()) return;
     const card=e.target.closest&&e.target.closest('#ct .grid .card');
-    if(!card||!canDrag(card)||isBlockedTarget(e.target)) return;
+    if(!card||!canDrag(card)||isActionTarget(e.target)) return;
+    if(isHeaderTarget(e.target)) e.preventDefault();
     e.stopImmediatePropagation();
   }
 
-  window.addEventListener('touchstart',touchStart,{capture:true,passive:true});
+  // v42가 이미 등록되어 있어도 v43이 먼저 동작하도록 window capture에서 즉시 선점한다.
+  window.addEventListener('touchstart',touchStart,{capture:true,passive:false});
   window.addEventListener('touchmove',touchMove,{capture:true,passive:false});
   window.addEventListener('touchend',touchEnd,{capture:true,passive:false});
   window.addEventListener('touchcancel',touchCancel,{capture:true,passive:false});
-  window.addEventListener('pointerdown',blockLegacyPointer,{capture:true,passive:true});
+  window.addEventListener('pointerdown',blockLegacyPointer,{capture:true,passive:false});
   window.addEventListener('blur',()=>{if(st.down)cleanup();});
 })();
 </script>
-
 
 </body>
 </html>
