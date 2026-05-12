@@ -6907,29 +6907,31 @@ body.dark .mobile-reorder-tools{
 
 
 
-<!-- v41: stable mobile video drag reorder + robust edge autoscroll -->
+<!-- v42: mobile long-press video reorder fix + Safari-like edge autoscroll -->
 <style>
 @media(max-width:900px){
-  body.v41-video-dragging,
-  body.v41-video-dragging *{
+  body.v42-video-dragging,
+  body.v42-video-dragging *{
     -webkit-user-select:none!important;
     user-select:none!important;
     -webkit-touch-callout:none!important;
   }
-  body.v41-video-dragging iframe,
-  body.v41-video-dragging .ytbox,
-  body.v41-video-dragging .ytthumb,
-  body.v41-video-dragging .ytplay{
+  body.v42-video-dragging{
+    overscroll-behavior:none!important;
+    touch-action:none!important;
+  }
+  body.v42-video-dragging iframe,
+  body.v42-video-dragging .ytbox,
+  body.v42-video-dragging .ytthumb,
+  body.v42-video-dragging .ytplay{
     pointer-events:none!important;
   }
-  .v41-src{
-    display:none!important;
-  }
-  .v41-ph{
+  .v42-src{visibility:hidden!important;opacity:0!important;}
+  .v42-ph{
     width:auto!important;
     min-width:0!important;
-    border:2px dashed rgba(255,78,42,.46)!important;
-    background:rgba(255,78,42,.065)!important;
+    border:2px dashed rgba(255,78,42,.54)!important;
+    background:rgba(255,78,42,.075)!important;
     border-radius:20px!important;
     box-shadow:none!important;
     display:flex!important;
@@ -6938,35 +6940,28 @@ body.dark .mobile-reorder-tools{
     overflow:hidden!important;
     opacity:1!important;
   }
-  .v41-ph::after{
+  .v42-ph::after{
     content:'여기에 이동';
     color:var(--accent);
     font-size:12.5px;
     font-weight:900;
     letter-spacing:-.2px;
   }
-  .grid[data-sub="shorts"] .v41-ph{
-    min-height:136px!important;
-    height:136px!important;
-  }
-  .grid[data-sub="longform"] .v41-ph{
-    min-height:128px!important;
-    height:128px!important;
-  }
-  .v41-ghost{
+  .grid[data-sub="shorts"] .v42-ph{min-height:132px!important;height:132px!important;}
+  .grid[data-sub="longform"] .v42-ph{min-height:126px!important;height:126px!important;}
+  .v42-ghost{
     position:fixed!important;
-    left:0;
-    top:0;
+    left:0;top:0;
     z-index:2147483646!important;
     width:min(286px,78vw)!important;
     max-width:calc(100vw - 28px)!important;
     transform:translate3d(-50%,-50%,0)!important;
     pointer-events:none!important;
-    border:1.5px solid rgba(255,78,42,.5)!important;
-    background:rgba(255,255,255,.96)!important;
+    border:1.5px solid rgba(255,78,42,.55)!important;
+    background:rgba(255,255,255,.97)!important;
     color:var(--text)!important;
     border-radius:18px!important;
-    box-shadow:0 18px 48px rgba(0,0,0,.22),0 0 0 9999px rgba(0,0,0,.025)!important;
+    box-shadow:0 18px 48px rgba(0,0,0,.22),0 0 0 9999px rgba(0,0,0,.018)!important;
     padding:12px 14px!important;
     display:flex!important;
     flex-direction:column!important;
@@ -6974,148 +6969,111 @@ body.dark .mobile-reorder-tools{
     justify-content:center!important;
     gap:8px!important;
     text-align:center!important;
-    opacity:.97!important;
+    opacity:.98!important;
     will-change:left,top!important;
   }
-  body.dark .v41-ghost{
+  body.dark .v42-ghost{
     background:rgba(24,24,24,.98)!important;
     border-color:rgba(255,122,87,.72)!important;
     box-shadow:0 18px 50px rgba(0,0,0,.65),0 0 0 9999px rgba(0,0,0,.04)!important;
   }
-  .v41-ghost .v41-pill{
-    height:26px;
-    padding:0 11px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:999px;
-    border:1.5px solid rgba(255,78,42,.28);
-    background:rgba(255,78,42,.08);
-    color:var(--accent);
-    font-size:12px;
-    font-weight:900;
-    white-space:nowrap;
+  .v42-ghost .v42-pill{
+    height:26px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;
+    border-radius:999px;border:1.5px solid rgba(255,78,42,.28);background:rgba(255,78,42,.08);
+    color:var(--accent);font-size:12px;font-weight:900;white-space:nowrap;
   }
-  .v41-ghost .v41-title{
-    width:100%;
-    font-size:14px;
-    font-weight:900;
-    line-height:1.35;
-    letter-spacing:-.35px;
-    word-break:keep-all;
-    overflow-wrap:anywhere;
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
+  .v42-ghost .v42-title{
+    width:100%;font-size:14px;font-weight:900;line-height:1.35;letter-spacing:-.35px;
+    word-break:keep-all;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   }
-  .v41-edge-hint{
-    position:fixed;
-    left:50%;
-    transform:translateX(-50%);
-    z-index:2147483645;
-    height:34px;
-    min-width:132px;
-    padding:0 14px;
-    border-radius:999px;
-    background:rgba(255,78,42,.94);
-    color:#fff;
-    box-shadow:0 8px 28px rgba(255,78,42,.32);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    font-size:12px;
-    font-weight:900;
-    pointer-events:none;
+  .v42-edge-hint{
+    position:fixed;left:50%;transform:translateX(-50%);z-index:2147483645;
+    height:34px;min-width:132px;padding:0 14px;border-radius:999px;background:rgba(255,78,42,.94);color:#fff;
+    box-shadow:0 8px 28px rgba(255,78,42,.32);display:none;align-items:center;justify-content:center;
+    font-size:12px;font-weight:900;pointer-events:none;
   }
-  body.v41-video-dragging .v41-edge-hint.on{display:flex;}
-  .v41-edge-hint.top{top:calc(env(safe-area-inset-top,0px) + 12px);}
-  .v41-edge-hint.bottom{bottom:calc(env(safe-area-inset-bottom,0px) + 88px);}
+  body.v42-video-dragging .v42-edge-hint.on{display:flex;}
+  .v42-edge-hint.top{top:calc(env(safe-area-inset-top,0px) + 12px);}
+  .v42-edge-hint.bottom{bottom:calc(env(safe-area-inset-bottom,0px) + 88px);}
 }
 </style>
 <script>
-/* v41: 모바일 전용 영상 순서 변경 안정화. 기존 모바일 드래그 스크립트는 v41 위에서 비활성화됨. */
+/* v42: 모바일 롱클릭 정렬 취소 방지 + 상/하단 자동 스크롤 안정화 */
 (function(){
-  if(window.__WORKOUT_V41__) return;
-  window.__WORKOUT_V41__=true;
+  if(window.__WORKOUT_V42__) return;
+  window.__WORKOUT_V42__=true;
 
-  function isMobileUI(){
-    return window.matchMedia('(max-width: 900px)').matches || ((navigator.maxTouchPoints||0)>0 && window.innerWidth<=980);
-  }
-  function interactive(el){
-    return !!(el && el.closest('button,a,iframe,input,select,textarea,summary,.ytthumb,.ytbox,.ytplay,.mclose,.share-btn,.cbtn,.tab,.subtab,.modal,.ov'));
-  }
-  function gridOf(card){ return card && card.closest('#ct > .grid, .grid'); }
-  function activeGrid(){ return document.querySelector('#ct > .grid') || document.querySelector('.grid'); }
-  function canDrag(card){
-    const grid=gridOf(card);
-    return !!(grid && card && card.dataset.dragDisabled!=='1' && grid.dataset.dragDisabled!=='1' && window.aid && data && data.items && Array.isArray(data.items[aid]));
-  }
-  function typeFor(id,card){
-    if(card && card.dataset.vtype) return card.dataset.vtype;
-    const arr=(data.items&&data.items[aid])||[];
-    const it=arr.find(x=>String(x.id)===String(id));
-    try{return it?videoTypeFromItem(it):(activeGrid()?.dataset.sub||'shorts');}catch(e){return activeGrid()?.dataset.sub||'shorts';}
-  }
-  function labelFor(type){ return type==='shorts'?'⚡ 숏폼':'▶ 롱폼'; }
-  function pageEl(){ return document.scrollingElement || document.documentElement || document.body; }
-  function pageTop(){ const el=pageEl(); return el.scrollTop || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0; }
+  const LONG_PRESS_MS=300;
+  const CANCEL_DISTANCE=34;
+  const st={down:false,on:false,card:null,grid:null,ph:null,ghost:null,id:'',type:'shorts',sx:0,sy:0,x:0,y:0,timer:0,raf:0,speed:0,startedAt:0,lockedScrollY:0};
+
+  function isMobileUI(){return matchMedia('(max-width:900px)').matches || ((navigator.maxTouchPoints||0)>0 && innerWidth<=980);}
+  function isBlockedTarget(el){return !!(el&&el.closest('button,a,input,select,textarea,summary,.cbtn,.tmbtn,.tab,.subtab,.mclose,.share-btn,.modal,.ov,#btn-top,#btn-add'))}
+  function pageEl(){return document.scrollingElement||document.documentElement||document.body;}
+  function pageTop(){const el=pageEl();return el.scrollTop||window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0;}
+  function pageMax(){const el=pageEl();return Math.max(0,(el.scrollHeight||document.body.scrollHeight||0)-(innerHeight||document.documentElement.clientHeight||0));}
   function setPageTop(v){
+    const next=Math.max(0,Math.min(pageMax(),v));
     const el=pageEl();
-    const max=Math.max(0,(el.scrollHeight||document.body.scrollHeight||0)-(window.innerHeight||document.documentElement.clientHeight||0));
-    const next=Math.max(0,Math.min(max,v));
     try{el.scrollTop=next;}catch(e){}
     try{document.documentElement.scrollTop=next;document.body.scrollTop=next;}catch(e){}
     try{window.scrollTo(0,next);}catch(e){}
   }
-  function clearForeignDrag(){
-    try{ if(typeof cleanDrag==='function') cleanDrag(); }catch(e){}
-    document.querySelectorAll('.dghost,.rph,.mobile-drag-ghost,.mobile-drag-ph,.v40-ghost,.v40-ph').forEach(el=>{try{el.remove();}catch(_){}});
-    document.querySelectorAll('.dsrc,.mobile-drag-src,.v40-src').forEach(el=>el.classList.remove('dsrc','mobile-drag-src','v40-src'));
-    document.body.classList.remove('dragging','mobile-video-dragging');
+  function gridOf(card){return card&&card.closest('#ct > .grid, .grid');}
+  function activeGrid(){return document.querySelector('#ct > .grid')||document.querySelector('.grid');}
+  function canDrag(card){const grid=gridOf(card);return !!(grid&&card&&card.dataset.dragDisabled!=='1'&&grid.dataset.dragDisabled!=='1'&&window.aid&&data&&data.items&&Array.isArray(data.items[aid]));}
+  function typeFor(id,card){
+    if(card&&card.dataset.vtype) return card.dataset.vtype;
+    const arr=(data.items&&data.items[aid])||[];
+    const it=arr.find(x=>String(x.id)===String(id));
+    try{return it?videoTypeFromItem(it):(activeGrid()?.dataset.sub||'shorts');}catch(e){return activeGrid()?.dataset.sub||'shorts';}
   }
+  function labelFor(type){return type==='shorts'?'⚡ 숏폼':'▶ 롱폼';}
+  function escLocal(s){try{return typeof esc==='function'?esc(s):String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}catch(e){return String(s||'');}}
+  function touchPoint(e){const t=e.touches&&e.touches[0] || e.changedTouches&&e.changedTouches[0];return t?{x:t.clientX,y:t.clientY}:null;}
+
   function ensureHints(){
-    let top=document.getElementById('v41-edge-top');
-    let bottom=document.getElementById('v41-edge-bottom');
-    if(!top){top=document.createElement('div');top.id='v41-edge-top';top.className='v41-edge-hint top';top.textContent='위로 이동 중';document.body.appendChild(top);} 
-    if(!bottom){bottom=document.createElement('div');bottom.id='v41-edge-bottom';bottom.className='v41-edge-hint bottom';bottom.textContent='아래로 이동 중';document.body.appendChild(bottom);} 
+    let top=document.getElementById('v42-edge-top');
+    let bottom=document.getElementById('v42-edge-bottom');
+    if(!top){top=document.createElement('div');top.id='v42-edge-top';top.className='v42-edge-hint top';top.textContent='위로 이동 중';document.body.appendChild(top);}
+    if(!bottom){bottom=document.createElement('div');bottom.id='v42-edge-bottom';bottom.className='v42-edge-hint bottom';bottom.textContent='아래로 이동 중';document.body.appendChild(bottom);}
     return {top,bottom};
   }
-  function escLocal(s){
-    try{return typeof esc==='function'?esc(s):String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-    catch(e){return String(s||'');}
+  function clearForeignDrag(){
+    try{if(typeof cleanDrag==='function') cleanDrag();}catch(e){}
+    document.querySelectorAll('.dghost,.rph,.mobile-drag-ghost,.mobile-drag-ph,.v40-ghost,.v40-ph,.v41-ghost,.v41-ph').forEach(el=>{try{el.remove();}catch(_){}});
+    document.querySelectorAll('.dsrc,.mobile-drag-src,.v40-src,.v41-src').forEach(el=>el.classList.remove('dsrc','mobile-drag-src','v40-src','v41-src'));
+    document.body.classList.remove('dragging','mobile-video-dragging','v41-video-dragging');
   }
+  function stopTimer(){if(st.timer){clearTimeout(st.timer);st.timer=0;}}
 
-  const st={down:false,on:false,card:null,grid:null,ph:null,ghost:null,id:'',type:'shorts',sx:0,sy:0,x:0,y:0,pid:null,timer:0,raf:0,speed:0,lastScroll:0};
-  function stopTimer(){ if(st.timer){clearTimeout(st.timer);st.timer=0;} }
   function makeGhost(card,x,y){
-    const title=(card.querySelector('.card-ttl')?.textContent || card.querySelector('.linkrow a')?.textContent || '영상').trim();
+    const title=(card.querySelector('.card-ttl')?.textContent||card.querySelector('.linkrow a')?.textContent||'영상').trim();
     const g=document.createElement('div');
-    g.className='v41-ghost';
-    g.innerHTML='<div class="v41-pill">'+labelFor(st.type)+'</div><div class="v41-title">'+escLocal(title)+'</div>';
-    g.style.left=x+'px'; g.style.top=y+'px';
+    g.className='v42-ghost';
+    g.innerHTML='<div class="v42-pill">'+labelFor(st.type)+'</div><div class="v42-title">'+escLocal(title)+'</div>';
+    g.style.left=x+'px';g.style.top=y+'px';
     document.body.appendChild(g);
     return g;
   }
   function startDrag(){
-    if(st.on || !st.card || !canDrag(st.card)) return;
+    if(st.on||!st.card||!canDrag(st.card)) return;
     clearForeignDrag();
     st.grid=gridOf(st.card); if(!st.grid) return;
     st.type=typeFor(st.id,st.card);
     const r=st.card.getBoundingClientRect();
     const ph=document.createElement('div');
-    ph.className='card v41-ph';
-    ph.dataset.iid=st.id;
-    ph.dataset.vtype=st.type;
-    const h=st.type==='shorts'?Math.min(156,Math.max(124,Math.round(r.height*.30))):Math.min(142,Math.max(116,Math.round(r.height*.26)));
+    ph.className='card v42-ph';
+    ph.dataset.iid=st.id;ph.dataset.vtype=st.type;
+    const h=st.type==='shorts'?Math.min(152,Math.max(124,Math.round(r.height*.32))):Math.min(138,Math.max(116,Math.round(r.height*.27)));
     ph.style.height=h+'px';
     st.card.parentNode.insertBefore(ph,st.card);
     st.ph=ph;
     st.ghost=makeGhost(st.card,st.x,st.y);
-    st.card.classList.add('v41-src');
-    document.body.classList.add('v41-video-dragging');
+    st.card.classList.add('v42-src');
+    document.body.classList.add('v42-video-dragging');
     st.on=true;
-    st.lastScroll=pageTop();
+    st.lockedScrollY=pageTop();
     updateSpeed(st.y);
     movePlaceholder(st.x,st.y);
     loop();
@@ -7123,17 +7081,12 @@ body.dark .mobile-reorder-tools{
   }
   function updateSpeed(y){
     const vv=window.visualViewport;
-    const vh=vv?.height || window.innerHeight || document.documentElement.clientHeight || 720;
-    const topEdge=Math.max(86,Math.min(140,vh*.18));
-    const bottomEdge=Math.max(132,Math.min(220,vh*.26));
+    const vh=vv?.height||innerHeight||document.documentElement.clientHeight||720;
+    const topEdge=Math.max(120,Math.min(190,vh*.24));
+    const bottomEdge=Math.max(150,Math.min(250,vh*.30));
     let speed=0;
-    if(y<topEdge){
-      const p=Math.min(1,Math.max(0,(topEdge-y)/topEdge));
-      speed=-(10+Math.round(p*34));
-    }else if(y>vh-bottomEdge){
-      const p=Math.min(1,Math.max(0,(y-(vh-bottomEdge))/bottomEdge));
-      speed=10+Math.round(p*38);
-    }
+    if(y<topEdge){const p=Math.min(1,Math.max(0,(topEdge-y)/topEdge));speed=-(12+Math.round(p*42));}
+    else if(y>vh-bottomEdge){const p=Math.min(1,Math.max(0,(y-(vh-bottomEdge))/bottomEdge));speed=12+Math.round(p*46);}
     st.speed=speed;
     const hints=ensureHints();
     hints.top.classList.toggle('on',speed<0);
@@ -7150,39 +7103,35 @@ body.dark .mobile-reorder-tools{
     st.raf=requestAnimationFrame(loop);
   }
   function movePlaceholder(x,y){
-    const grid=st.grid || activeGrid();
-    if(!grid || !st.ph) return;
-    const cards=[...grid.querySelectorAll('.card:not(.v41-src):not(.v41-ph):not(.rph):not(.mobile-drag-ph):not(.mobile-drag-src):not(.v40-ph):not(.v40-src)')];
+    const grid=st.grid||activeGrid();
+    if(!grid||!st.ph) return;
+    const cards=[...grid.querySelectorAll('.card:not(.v42-src):not(.v42-ph):not(.v41-src):not(.v41-ph):not(.rph):not(.mobile-drag-ph):not(.mobile-drag-src):not(.v40-ph):not(.v40-src)')];
     if(!cards.length){grid.appendChild(st.ph);return;}
     let before=null;
     for(const el of cards){
       const r=el.getBoundingClientRect();
-      const sameBand=y>=r.top-22 && y<=r.bottom+22;
-      if(sameBand){
-        if(x < r.left + r.width/2){before=el;break;}
-      }else if(y < r.top + r.height/2){
-        before=el;break;
-      }
+      const sameRow=y>=r.top-28&&y<=r.bottom+28;
+      if(sameRow){if(x<r.left+r.width/2){before=el;break;}}
+      else if(y<r.top+r.height/2){before=el;break;}
     }
     if(before) grid.insertBefore(st.ph,before); else grid.appendChild(st.ph);
   }
   function reorder(){
-    const grid=st.grid; if(!grid || !aid || !Array.isArray(data.items[aid])) return false;
-    const order=[]; const seen=new Set();
+    const grid=st.grid; if(!grid||!aid||!Array.isArray(data.items[aid])) return false;
+    const order=[];const seen=new Set();
     [...grid.children].forEach(el=>{
       let id='';
-      if(el.classList&&el.classList.contains('v41-ph')) id=String(st.id);
-      else if(el.classList&&el.classList.contains('card')&&!el.classList.contains('v41-src')&&!el.classList.contains('rph')&&!el.classList.contains('mobile-drag-ph')) id=String(el.dataset.iid||'');
-      if(id && !seen.has(id)){seen.add(id);order.push(id);}
+      if(el.classList&&el.classList.contains('v42-ph')) id=String(st.id);
+      else if(el.classList&&el.classList.contains('card')&&!el.classList.contains('v42-src')&&!el.classList.contains('v41-src')&&!el.classList.contains('rph')&&!el.classList.contains('mobile-drag-ph')) id=String(el.dataset.iid||'');
+      if(id&&!seen.has(id)){seen.add(id);order.push(id);}
     });
     if(order.length<1) return false;
     const byId=new Map(data.items[aid].map(it=>[String(it.id),it]));
-    let cursor=0;
-    const cur=st.type;
+    let cursor=0;const cur=st.type;
     data.items[aid]=data.items[aid].map(it=>{
       if(videoTypeFromItem(it)!==cur) return it;
       const nextId=order[cursor++];
-      return byId.get(String(nextId)) || it;
+      return byId.get(String(nextId))||it;
     });
     try{save();}catch(e){}
     return true;
@@ -7190,67 +7139,78 @@ body.dark .mobile-reorder-tools{
   function cleanup(){
     stopTimer();
     if(st.raf) cancelAnimationFrame(st.raf);
-    if(st.card) st.card.classList.remove('v41-src');
+    if(st.card) st.card.classList.remove('v42-src');
     if(st.ph&&st.ph.parentNode) st.ph.parentNode.removeChild(st.ph);
     if(st.ghost&&st.ghost.parentNode) st.ghost.parentNode.removeChild(st.ghost);
-    document.body.classList.remove('v41-video-dragging');
-    const hints=ensureHints(); hints.top.classList.remove('on'); hints.bottom.classList.remove('on');
-    Object.assign(st,{down:false,on:false,card:null,grid:null,ph:null,ghost:null,id:'',type:'shorts',sx:0,sy:0,x:0,y:0,pid:null,timer:0,raf:0,speed:0,lastScroll:0});
+    document.body.classList.remove('v42-video-dragging');
+    const hints=ensureHints();hints.top.classList.remove('on');hints.bottom.classList.remove('on');
+    Object.assign(st,{down:false,on:false,card:null,grid:null,ph:null,ghost:null,id:'',type:'shorts',sx:0,sy:0,x:0,y:0,timer:0,raf:0,speed:0,startedAt:0,lockedScrollY:0});
   }
-  function pointerDown(e){
-    if(!isMobileUI()) return;
+
+  function touchStart(e){
+    if(!isMobileUI()||!e.touches||e.touches.length!==1) return;
     const card=e.target.closest&&e.target.closest('#ct .grid .card');
-    if(!card || card.classList.contains('v41-ph') || card.classList.contains('rph') || !canDrag(card)) return;
-    if(interactive(e.target)) return;
-    e.stopImmediatePropagation();
-    st.down=true;st.on=false;st.card=card;st.grid=gridOf(card);st.id=String(card.dataset.iid||'');st.type=typeFor(st.id,card);st.sx=e.clientX;st.sy=e.clientY;st.x=e.clientX;st.y=e.clientY;st.pid=e.pointerId;
+    if(!card||card.classList.contains('v42-ph')||card.classList.contains('rph')||!canDrag(card)) return;
+    if(isBlockedTarget(e.target)) return;
+    const p=touchPoint(e); if(!p) return;
+    st.down=true;st.on=false;st.card=card;st.grid=gridOf(card);st.id=String(card.dataset.iid||'');st.type=typeFor(st.id,card);st.sx=p.x;st.sy=p.y;st.x=p.x;st.y=p.y;st.startedAt=Date.now();
     stopTimer();
-    st.timer=setTimeout(startDrag,260);
+    st.timer=setTimeout(startDrag,LONG_PRESS_MS);
   }
-  function pointerMove(e){
-    if(!isMobileUI() || !st.down || (st.pid!==null && e.pointerId!==st.pid)) return;
-    e.stopImmediatePropagation();
-    st.x=e.clientX; st.y=e.clientY;
+  function touchMove(e){
+    if(!isMobileUI()||!st.down||!e.touches||e.touches.length!==1) return;
+    const p=touchPoint(e); if(!p) return;
+    st.x=p.x;st.y=p.y;
     if(!st.on){
-      if(Math.hypot(st.x-st.sx,st.y-st.sy)>12) cleanup();
-      return;
+      const dist=Math.hypot(st.x-st.sx,st.y-st.sy);
+      const held=Date.now()-st.startedAt;
+      if(held>=LONG_PRESS_MS-40){
+        stopTimer();
+        startDrag();
+      }else if(dist>CANCEL_DISTANCE){
+        cleanup();
+        return;
+      }else{
+        return;
+      }
+      if(!st.on) return;
     }
     e.preventDefault();
-    if(st.ghost){st.ghost.style.left=st.x+'px'; st.ghost.style.top=st.y+'px';}
+    e.stopPropagation();
+    if(st.ghost){st.ghost.style.left=st.x+'px';st.ghost.style.top=st.y+'px';}
     updateSpeed(st.y);
     movePlaceholder(st.x,st.y);
   }
-  function pointerUp(e){
-    if(!isMobileUI() || !st.down || (st.pid!==null && e.pointerId!==st.pid)) return;
-    e.stopImmediatePropagation();
-    const was=st.on;
-    if(was) e.preventDefault();
-    let ok=false, id=st.id;
-    if(was) ok=reorder();
+  function touchEnd(e){
+    if(!isMobileUI()||!st.down) return;
+    const was=st.on;let ok=false;const id=st.id;
+    if(was){e.preventDefault();e.stopPropagation();ok=reorder();}
     cleanup();
     if(was){
       try{render();}catch(err){}
-      requestAnimationFrame(()=>{
-        try{
-          const card=document.querySelector('.card[data-iid="'+CSS.escape(String(id))+'"]');
-          if(card) card.scrollIntoView({block:'center',inline:'nearest',behavior:'smooth'});
-        }catch(e){}
-      });
-      if(ok && typeof showCenterToast==='function') showCenterToast('영상 위치 변경 완료','현재 탭 안에서 영상 순서를 저장했습니다.');
+      requestAnimationFrame(()=>{try{const card=document.querySelector('.card[data-iid="'+CSS.escape(String(id))+'"]');if(card)card.scrollIntoView({block:'center',inline:'nearest',behavior:'smooth'});}catch(e){}});
+      if(ok&&typeof showCenterToast==='function') showCenterToast('영상 위치 변경 완료','현재 탭 안에서 영상 순서를 저장했습니다.');
     }
   }
-  function pointerCancel(e){
-    if(!isMobileUI() || !st.down || (st.pid!==null && e.pointerId!==st.pid)) return;
+  function touchCancel(){if(st.down) cleanup();}
+
+  /* 이전 PC용/구버전 pointer 드래그와 충돌하지 않도록 모바일 카드 pointerdown은 선점한다. */
+  function blockLegacyPointer(e){
+    if(!isMobileUI()) return;
+    const card=e.target.closest&&e.target.closest('#ct .grid .card');
+    if(!card||!canDrag(card)||isBlockedTarget(e.target)) return;
     e.stopImmediatePropagation();
-    cleanup();
   }
-  window.addEventListener('pointerdown',pointerDown,{capture:true,passive:true});
-  window.addEventListener('pointermove',pointerMove,{capture:true,passive:false});
-  window.addEventListener('pointerup',pointerUp,{capture:true,passive:false});
-  window.addEventListener('pointercancel',pointerCancel,{capture:true,passive:false});
-  window.addEventListener('blur',()=>{if(st.down) cleanup();});
+
+  window.addEventListener('touchstart',touchStart,{capture:true,passive:true});
+  window.addEventListener('touchmove',touchMove,{capture:true,passive:false});
+  window.addEventListener('touchend',touchEnd,{capture:true,passive:false});
+  window.addEventListener('touchcancel',touchCancel,{capture:true,passive:false});
+  window.addEventListener('pointerdown',blockLegacyPointer,{capture:true,passive:true});
+  window.addEventListener('blur',()=>{if(st.down)cleanup();});
 })();
 </script>
+
 
 </body>
 </html>
