@@ -7527,5 +7527,198 @@ body.dark .order-btn{background:#202938;border-color:#8896ad;color:#eef3fb;}
 })();
 </script>
 
+
+<!-- v45: always-visible order button + cleaner action layout -->
+<style>
+/* 순서 변경 버튼은 렌더 타이밍과 관계없이 항상 표시 */
+.reorder-add.content-add,
+.content-toolbar .reorder-add.content-add{
+  display:inline-flex!important;
+}
+
+/* PC: 검색/필터 + 숏폼/롱폼 + 액션 버튼을 안정적인 한 줄 구조로 정리 */
+#ct > .library-command-row{
+  width:min(1720px, calc(100vw - 32px))!important;
+  grid-template-columns:minmax(620px,1fr) minmax(560px,720px)!important;
+  gap:12px!important;
+  align-items:stretch!important;
+}
+.library-command-row > .subtabs-row{
+  display:grid!important;
+  grid-template-columns:minmax(260px,1fr) minmax(220px,260px)!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+  gap:10px!important;
+  min-width:0!important;
+  overflow:visible!important;
+}
+.library-command-row > .subtabs-row .subtabs-panel{
+  min-width:0!important;
+  width:100%!important;
+}
+.library-command-row > .subtabs-row .content-toolbar,
+.library-command-row > .subtabs-row .content-toolbar.action-toolbar{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+  width:100%!important;
+  min-width:0!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  align-self:stretch!important;
+}
+.library-command-row > .subtabs-row .content-toolbar .content-add,
+.library-command-row > .subtabs-row #btn-add.content-add,
+.library-command-row > .subtabs-row .reorder-add.content-add{
+  width:100%!important;
+  min-width:0!important;
+  min-height:54px!important;
+  height:100%!important;
+  padding:0 10px!important;
+  border-radius:16px!important;
+  font-size:12.5px!important;
+  line-height:1!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  white-space:nowrap!important;
+  box-sizing:border-box!important;
+}
+.library-command-row > .subtabs-row .reorder-add.content-add{
+  background:var(--surface)!important;
+  color:var(--accent)!important;
+  border:1.5px solid rgba(255,78,42,.32)!important;
+  box-shadow:var(--sh0)!important;
+}
+.library-command-row > .subtabs-row .reorder-add.content-add:hover{
+  background:var(--ac-dim)!important;
+  border-color:rgba(255,78,42,.52)!important;
+  transform:translateY(-1px);
+}
+body.dark .library-command-row > .subtabs-row .reorder-add.content-add{
+  background:#1d2430!important;
+  border-color:rgba(255,138,112,.72)!important;
+  color:#ff987f!important;
+}
+
+/* 중간 폭에서는 2단으로 자연스럽게 내려서 잘림 방지 */
+@media(max-width:1380px){
+  #ct > .library-command-row{
+    grid-template-columns:1fr!important;
+    width:min(980px, calc(100vw - 28px))!important;
+  }
+  .library-command-row > .subtabs-row{
+    grid-template-columns:minmax(0,1fr) minmax(220px,260px)!important;
+  }
+}
+
+/* 모바일: 검색/필터, 숏폼/롱폼, 링크 추가/순서 변경을 각각 보기 좋게 분리 */
+@media(max-width:900px){
+  #ct > .library-command-row{
+    width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:10px!important;
+    margin:0 auto 12px!important;
+    padding:0 12px!important;
+    box-sizing:border-box!important;
+  }
+  .library-command-row > .subtabs-row{
+    display:flex!important;
+    flex-direction:column!important;
+    width:100%!important;
+    gap:8px!important;
+    margin:0!important;
+    overflow:visible!important;
+  }
+  .library-command-row > .subtabs-row .subtabs-panel{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    flex:0 0 auto!important;
+    padding:5px!important;
+    gap:6px!important;
+    border-radius:17px!important;
+    box-sizing:border-box!important;
+  }
+  .library-command-row > .subtabs-row .subtab{
+    min-height:48px!important;
+    padding:0 8px!important;
+    border-radius:14px!important;
+  }
+  .library-command-row > .subtabs-row .content-toolbar,
+  .library-command-row > .subtabs-row .content-toolbar.action-toolbar{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+    width:100%!important;
+    min-width:0!important;
+    flex:0 0 auto!important;
+  }
+  .library-command-row > .subtabs-row .content-toolbar .content-add,
+  .library-command-row > .subtabs-row #btn-add.content-add,
+  .library-command-row > .subtabs-row .reorder-add.content-add{
+    min-height:48px!important;
+    height:48px!important;
+    border-radius:15px!important;
+    font-size:12.5px!important;
+    padding:0 10px!important;
+    white-space:nowrap!important;
+  }
+  .library-command-row > .subtabs-row #btn-add.content-add svg{width:13px;height:13px;}
+  .library-command-row > .subtabs-row .reorder-add.content-add span[aria-hidden="true"]{font-size:14px;}
+}
+@media(max-width:390px){
+  #ct > .library-command-row{padding:0 10px!important;}
+  .library-command-row > .subtabs-row .content-toolbar .content-add,
+  .library-command-row > .subtabs-row #btn-add.content-add,
+  .library-command-row > .subtabs-row .reorder-add.content-add{
+    min-height:46px!important;
+    height:46px!important;
+    font-size:11.5px!important;
+    padding:0 7px!important;
+    gap:4px!important;
+  }
+}
+</style>
+<script>
+(function(){
+  if(window.__WORKOUT_V45__) return;
+  window.__WORKOUT_V45__=true;
+
+  function safeEsc(s){
+    try{return typeof esc==='function'?esc(s):String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+    catch(e){return String(s||'');}
+  }
+  function currentType(mid){
+    try{return getActiveSub(mid,(data.items&&data.items[mid])||[]);}catch(e){return 'shorts';}
+  }
+
+  // buildContentToolbar를 최종 버전으로 고정: 링크 추가 + 순서 변경 버튼 항상 렌더링
+  window.buildContentToolbar = buildContentToolbar = function(mid,cur){
+    const type=(cur==='shorts'||cur==='longform')?cur:currentType(mid);
+    const wrap=document.createElement('section');
+    wrap.className='content-toolbar action-toolbar';
+    wrap.innerHTML=`<button id="btn-add" class="content-add" type="button" onclick="openAddLink()">
+        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="btn-lbl">링크 추가</span>
+      </button>
+      <button type="button" class="content-add reorder-add" onclick="openOrderManager('${safeEsc(mid)}','${safeEsc(type)}')">
+        <span aria-hidden="true">↕</span><span class="btn-lbl">순서 변경</span>
+      </button>`;
+    return wrap;
+  };
+
+  // 기존 화면이 이미 렌더된 뒤 패치가 적용되는 문제 방지: 현재 화면을 한 번 다시 그려 버튼을 즉시 노출
+  requestAnimationFrame(function(){
+    try{
+      if(typeof renderItems==='function') renderItems();
+      else if(typeof render==='function') render();
+    }catch(e){}
+  });
+})();
+</script>
+
 </body>
 </html>
