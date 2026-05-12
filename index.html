@@ -2842,6 +2842,120 @@ body.dark .card.rph{
 }
 </style>
 
+
+
+<!-- v37: PC tab bar restore + dark search border clarity -->
+<style>
+/* PC 상단 메뉴바가 눌리거나 잘려 보이지 않도록 v36 모바일 보정값을 PC에서 되돌림 */
+@media (min-width:769px){
+  #tabs{
+    height:auto!important;
+    min-height:72px!important;
+    padding:9px 14px!important;
+    overflow:visible!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:0!important;
+  }
+  #tab-scroll{
+    height:auto!important;
+    min-height:54px!important;
+    padding:7px!important;
+    gap:6px!important;
+    display:flex!important;
+    align-items:center!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    border-radius:16px!important;
+  }
+  .tab{
+    height:auto!important;
+    min-height:38px!important;
+    padding:9px 15px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+    flex:0 0 auto!important;
+  }
+  .tab > span:first-child{
+    line-height:1.15!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    max-width:150px!important;
+  }
+  .tab .tcnt{
+    height:20px!important;
+    min-width:20px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+  }
+  .tab .tmeta{
+    align-items:center!important;
+    justify-content:center!important;
+  }
+  .tmbtn{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+  }
+  #btn-newtab{
+    width:38px!important;
+    height:38px!important;
+    min-width:38px!important;
+    min-height:38px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+  }
+}
+
+/* 다크 모드 검색 영역: 다른 버튼처럼 외곽선과 배경 대비 강화 */
+body.dark .library-tools,
+body.dark .library-tools.command-left{
+  border-color:rgba(162,176,199,.42)!important;
+  background:linear-gradient(180deg,#171d29,#121722)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 10px 28px rgba(0,0,0,.36)!important;
+}
+body.dark .lib-search-wrap,
+body.dark .library-command-row .lib-search-wrap{
+  border:2px solid rgba(178,190,211,.56)!important;
+  background:#101621!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 0 0 1px rgba(0,0,0,.28)!important;
+}
+body.dark .lib-search-wrap:focus-within,
+body.dark .library-command-row .lib-search-wrap:focus-within{
+  border-color:rgba(255,122,87,.95)!important;
+  box-shadow:0 0 0 4px rgba(255,78,42,.18),0 1px 0 rgba(255,255,255,.10) inset!important;
+  background:#121a27!important;
+}
+body.dark .lib-search{
+  color:#f7f9fc!important;
+  caret-color:var(--accent)!important;
+}
+body.dark .lib-search::placeholder{
+  color:#aeb8c7!important;
+  opacity:1!important;
+}
+body.dark .lib-search-icon{opacity:1!important;color:#c9d2e1!important;}
+body.dark .lib-select,
+body.dark .lib-filter-btn,
+body.dark .lib-count{
+  border-color:rgba(178,190,211,.48)!important;
+  background:#151b26!important;
+  color:#eef3f9!important;
+}
+body.dark .lib-filter-btn.on{
+  border-color:var(--accent)!important;
+  background:linear-gradient(135deg,var(--accent),var(--accent2))!important;
+  color:#fff!important;
+}
+</style>
+
 </head>
 <body>
 
@@ -5456,6 +5570,411 @@ body.dragging .card.dsrc{
   .cbtn.more::before{font-size:18px;transform:translateY(-1px);}
 }
 </style>
+
+
+<!-- v36: final QA pass — mobile layout stability, tap targets, data integrity, overflow guards -->
+<style>
+/* 전체 가로 넘침 방지 및 모바일 터치 안정화 */
+html,body{max-width:100%;overflow-x:hidden;}
+button,a,[role="button"],.tab,.subtab,.cbtn,.share-btn,.content-add,.hbtn,#btn-top{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+img,iframe,video{max-width:100%;}
+
+/* 모바일에서 hover 효과가 남아 화면이 흔들리거나 커지는 현상 방지 */
+@media(hover:none){
+  .card:hover,.tab:hover,.subtab:hover,.hbtn:hover,.content-add:hover,.share-btn:hover{
+    transform:none!important;
+    filter:none!important;
+  }
+  .ytthumb:hover .ytimg{transform:none!important;opacity:1!important;}
+}
+
+/* 상단 메뉴 탭바: 모바일에서 잘림/흔들림 방지 */
+#tabs{overflow:hidden;}
+#tab-scroll{overscroll-behavior-x:contain;}
+@media(max-width:768px){
+  body{min-width:0;}
+  #hdr{
+    height:74px!important;
+    min-height:74px!important;
+    padding:0 14px!important;
+    display:grid!important;
+    grid-template-columns:76px minmax(0,1fr) 76px!important;
+    align-items:center!important;
+  }
+  #logo{
+    grid-column:2!important;
+    justify-self:center!important;
+    display:inline-flex!important;
+    height:48px!important;
+    max-width:100%!important;
+    transform:none!important;
+  }
+  #logo .logo-dot{width:38px!important;height:38px!important;border-radius:12px!important;font-size:18px!important;}
+  #logo .logo-txt{display:inline!important;font-size:19px!important;line-height:1!important;}
+  #hdr-gap{display:none!important;}
+  #hdr-r{grid-column:3!important;justify-self:end!important;gap:7px!important;}
+  #btn-share{min-width:42px!important;width:42px!important;height:42px!important;padding:0!important;border-radius:14px!important;}
+  #btn-share .share-label{display:none!important;}
+  #btn-theme{width:42px!important;height:42px!important;border-radius:14px!important;font-size:18px!important;}
+
+  #tabs{
+    top:74px!important;
+    min-height:58px!important;
+    padding:0!important;
+    border-top:1px solid var(--border)!important;
+    overflow:hidden!important;
+  }
+  #tab-scroll{
+    min-height:58px!important;
+    padding:8px 12px!important;
+    gap:8px!important;
+    display:flex!important;
+    align-items:center!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+  }
+  .tab{
+    min-height:42px!important;
+    height:42px!important;
+    padding:0 13px!important;
+    border-radius:14px!important;
+    scroll-snap-align:center;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+  }
+  .tab.on{padding-right:8px!important;}
+  .tab span:first-child{line-height:1!important;}
+  .tab .tcnt{height:22px!important;min-width:22px!important;font-size:11px!important;}
+  .tab .tmeta{
+    display:flex!important;
+    gap:5px!important;
+    margin-left:3px!important;
+    align-items:center!important;
+  }
+  .tab:not(.on) .tmeta{display:none!important;}
+  .tmbtn{
+    width:32px!important;
+    height:32px!important;
+    min-width:32px!important;
+    border-radius:11px!important;
+    border:1px solid var(--border2)!important;
+    background:var(--surface)!important;
+    font-size:12px!important;
+  }
+  #btn-newtab{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    border-radius:14px!important;
+    font-size:18px!important;
+    scroll-snap-align:end;
+  }
+  body.theme-switching #tabs,
+  body.theme-switching #tab-scroll,
+  body.theme-switching .tab{transition:none!important;}
+}
+
+/* 명령줄 UI 정리: PC는 한 줄, 모바일은 검색/필터/탭을 안정적으로 분리 */
+.library-command-row{box-sizing:border-box;}
+.library-command-row .lib-search-wrap{min-width:220px;}
+.library-command-row .lib-controls > *{flex-shrink:0;}
+@media(min-width:1181px){
+  #ct > .library-command-row{
+    grid-template-columns:minmax(380px,1fr) auto!important;
+    gap:10px!important;
+  }
+  .library-command-row > .library-tools.command-left{min-width:0!important;}
+  .library-command-row .lib-controls{gap:6px!important;}
+  .library-command-row .lib-select{min-width:104px!important;padding:0 8px!important;}
+  .library-command-row .lib-filter-btn{padding:0 9px!important;min-width:auto!important;}
+  .library-command-row .lib-count{min-width:46px!important;padding:0 8px!important;}
+  .library-command-row > .subtabs-row{min-width:430px!important;}
+  .library-command-row > .subtabs-row .subtab{padding:0 14px!important;}
+  .library-command-row > .subtabs-row #btn-add.content-add{min-width:118px!important;}
+}
+@media(max-width:768px){
+  #main{padding:12px 12px calc(36px + env(safe-area-inset-bottom,0px))!important;}
+  #ct > .library-command-row{
+    width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:9px!important;
+    margin:0 0 12px!important;
+  }
+  .library-command-row > .library-tools.command-left{
+    width:100%!important;
+    padding:9px!important;
+    gap:8px!important;
+    border-radius:18px!important;
+  }
+  .library-command-row .lib-search-wrap{
+    width:100%!important;
+    min-width:0!important;
+    height:46px!important;
+    border-radius:16px!important;
+  }
+  .library-command-row .lib-controls{
+    display:flex!important;
+    width:100%!important;
+    gap:7px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:1px 1px 5px!important;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    grid-template-columns:none!important;
+  }
+  .library-command-row .lib-controls::-webkit-scrollbar{display:none;}
+  .library-command-row .lib-select,
+  .library-command-row .lib-filter-btn,
+  .library-command-row .lib-count{
+    width:auto!important;
+    min-width:max-content!important;
+    height:38px!important;
+    padding:0 10px!important;
+    border-radius:13px!important;
+    font-size:12px!important;
+  }
+  .library-command-row .lib-select{min-width:104px!important;}
+  .library-command-row > .subtabs-row{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 96px!important;
+    gap:8px!important;
+    align-items:stretch!important;
+  }
+  .library-command-row > .subtabs-row .subtabs-panel{
+    min-width:0!important;
+    width:100%!important;
+  }
+  .library-command-row > .subtabs-row .subtab{
+    min-width:0!important;
+    min-height:50px!important;
+    white-space:nowrap!important;
+  }
+  .library-command-row > .subtabs-row .content-toolbar{
+    min-width:0!important;
+    flex-basis:auto!important;
+  }
+  .library-command-row > .subtabs-row #btn-add.content-add{
+    min-height:58px!important;
+    height:100%!important;
+    width:100%!important;
+    border-radius:16px!important;
+  }
+}
+
+/* 카드/영상 모바일 시청 최적화 */
+@media(max-width:768px){
+  .grid{grid-template-columns:1fr!important;gap:13px!important;}
+  .grid[data-sub="longform"] .card,
+  .card[data-vtype="longform"]{
+    width:100%!important;
+    max-width:100%!important;
+  }
+  .grid[data-sub="shorts"]{
+    grid-template-columns:1fr!important;
+    justify-items:center!important;
+    gap:14px!important;
+  }
+  .grid[data-sub="shorts"] .card,
+  .card[data-vtype="shorts"]{
+    width:var(--mobile-short-card-width, min(330px, calc(100vw - 36px)))!important;
+    max-width:calc(100vw - 32px)!important;
+  }
+  .ytbox.shorts,
+  .ytbox.shorts.playing{
+    padding-bottom:177.78%!important;
+  }
+  .card-hd{
+    border-radius:18px 18px 0 0!important;
+  }
+  .card[data-vtype="shorts"] .card-hd{
+    min-height:76px!important;
+  }
+  .card[data-vtype="shorts"] .card-ttl{
+    white-space:normal!important;
+    overflow:visible!important;
+    display:block!important;
+    -webkit-line-clamp:unset!important;
+    text-align:center!important;
+    word-break:keep-all!important;
+    overflow-wrap:anywhere!important;
+  }
+}
+
+/* 영상 드래그 중 플레이어가 포인터를 잡거나 화면을 가리는 현상 방지 */
+body.dragging iframe,
+body.dragging .ytbox,
+body.dragging .ytthumb{pointer-events:none!important;}
+body.dragging .dghost iframe,
+body.dragging .dghost .ytbox,
+body.dragging .dghost .linkrow{display:none!important;}
+
+/* 우측 하단 최상단 이동 버튼: 모바일 Safari 하단바에 가리지 않도록 고정 */
+#btn-top{box-shadow:0 14px 32px rgba(255,78,42,.34)!important;}
+@media(max-width:768px){
+  #btn-top{
+    right:18px!important;
+    bottom:calc(86px + env(safe-area-inset-bottom,0px))!important;
+    width:52px!important;
+    height:52px!important;
+    min-width:52px!important;
+    min-height:52px!important;
+    border-radius:999px!important;
+    z-index:2147483000!important;
+  }
+}
+</style>
+<script>
+/* v36: final stability checks and mobile viewport tuning */
+(function(){
+  if(window.__WORKOUT_V36__) return;
+  window.__WORKOUT_V36__=true;
+
+  function auditWorkoutData(){
+    let changed=false;
+    if(!data || typeof data!=='object'){ data={menus:[],items:{}}; changed=true; }
+    if(!Array.isArray(data.menus)){ data.menus=[]; changed=true; }
+    if(!data.items || typeof data.items!=='object'){ data.items={}; changed=true; }
+
+    const menuSeen=new Set();
+    const cleanedMenus=[];
+    data.menus.forEach((m,idx)=>{
+      if(!m || typeof m!=='object') { changed=true; return; }
+      let id=String(m.id||'');
+      if(!id || menuSeen.has(id)){ id=uid(); changed=true; }
+      menuSeen.add(id);
+      const name=String(m.name||`메뉴 ${idx+1}`).trim() || `메뉴 ${idx+1}`;
+      if(m.id!==id || m.name!==name) changed=true;
+      cleanedMenus.push({id,name});
+      if(!Array.isArray(data.items[id])){ data.items[id]=[]; changed=true; }
+    });
+    Object.keys(data.items).forEach(mid=>{ if(!menuSeen.has(mid)){ delete data.items[mid]; changed=true; } });
+    data.menus=cleanedMenus;
+
+    Object.keys(data.items).forEach(mid=>{
+      const arr=Array.isArray(data.items[mid]) ? data.items[mid] : [];
+      const itemSeen=new Set();
+      data.items[mid]=arr.filter(Boolean).map((it,idx)=>{
+        if(typeof it!=='object'){ changed=true; it={}; }
+        let id=String(it.id||'');
+        if(!id || itemSeen.has(id)){ id=uid(); changed=true; }
+        itemSeen.add(id);
+        const link=String(it.link||it.url||'');
+        const title=String(it.title||it.name||link||`영상 ${idx+1}`);
+        const memo=String(it.memo||it.content||'');
+        const vtype=videoTypeFromItem(Object.assign({},it,{link,url:link}));
+        if(it.id!==id || it.link!==link || it.url!==link || it.title!==title || it.name!==title || it.memo!==memo || it.content!==memo || it.vtype!==vtype || it.videoType!==vtype){
+          changed=true;
+        }
+        return Object.assign({},it,{id,link,url:link,title,name:title,memo,content:memo,vtype,videoType:vtype,createdAt:it.createdAt||Date.now()});
+      });
+    });
+    if(aid && !data.menus.some(m=>m.id===aid)){
+      aid=data.menus[0]?.id || null;
+      if(aid) localStorage.setItem('workoutActiveMenuId',aid);
+      else localStorage.removeItem('workoutActiveMenuId');
+      changed=true;
+    }
+    if(changed){ try{ save(); }catch(e){} }
+  }
+
+  function computeMobileShortSize(){
+    const root=document.documentElement;
+    if(!root) return;
+    if(!matchMedia('(max-width: 768px)').matches){
+      root.style.removeProperty('--mobile-short-card-width');
+      return;
+    }
+    const vw=Math.min(window.innerWidth||390, document.documentElement.clientWidth||390);
+    const vh=(window.visualViewport&&window.visualViewport.height)||window.innerHeight||720;
+    const command=document.querySelector('.library-command-row');
+    const commandH=command?Math.min(170, Math.ceil(command.getBoundingClientRect().height)):128;
+    const safeBottom=96;
+    const headerAllowance=118;
+    const cardHeader=82;
+    const availableVideoH=Math.max(360, vh - Math.min(330, commandH + headerAllowance + safeBottom + cardHeader));
+    let width=Math.floor(availableVideoH*9/16);
+    width=Math.max(236, Math.min(width, vw-32, 340));
+    root.style.setProperty('--mobile-short-card-width', width+'px');
+  }
+
+  const previousUpdateShorts=window.updateMobileShortsSize;
+  window.updateMobileShortsSize=function(){
+    try{ if(typeof previousUpdateShorts==='function') previousUpdateShorts(); }catch(e){}
+    computeMobileShortSize();
+  };
+
+  const previousScrollTop=window.scrollToPageTop;
+  window.scrollToPageTop=function(smooth=true){
+    try{ if(typeof previousScrollTop==='function') previousScrollTop(smooth); }catch(e){}
+    const behavior=smooth?'smooth':'auto';
+    requestAnimationFrame(()=>{
+      try{ window.scrollTo({top:0,left:0,behavior}); }catch(e){ window.scrollTo(0,0); }
+      [document.documentElement,document.body,document.getElementById('main'),document.getElementById('ct')].filter(Boolean).forEach(el=>{
+        try{ el.scrollTop=0; el.scrollLeft=0; }catch(e){}
+      });
+    });
+  };
+
+  const previousUpdateTop=window.updateTopButton;
+  window.updateTopButton=function(){
+    const y=window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const btn=document.getElementById('btn-top');
+    if(btn) btn.classList.toggle('show', y>180);
+    try{ if(typeof previousUpdateTop==='function') previousUpdateTop(); }catch(e){}
+  };
+
+  const previousRender=window.render;
+  if(typeof previousRender==='function'){
+    window.render=function(){
+      auditWorkoutData();
+      previousRender.apply(this,arguments);
+      requestAnimationFrame(()=>{ computeMobileShortSize(); window.updateTopButton?.(); });
+    };
+  }
+  const previousRenderItems=window.renderItems;
+  if(typeof previousRenderItems==='function'){
+    window.renderItems=function(){
+      auditWorkoutData();
+      previousRenderItems.apply(this,arguments);
+      requestAnimationFrame(()=>{ computeMobileShortSize(); window.updateTopButton?.(); });
+    };
+  }
+
+  // 모바일 탭바/필터 스크롤 위치가 테마 전환이나 렌더 후 과하게 흔들리지 않도록 현재 위치 보존
+  const oldToggle=window.toggleTheme;
+  if(typeof oldToggle==='function'){
+    window.toggleTheme=function(){
+      const tabScroll=document.getElementById('tab-scroll');
+      const tools=document.querySelector('.lib-controls');
+      const keepTab=tabScroll?tabScroll.scrollLeft:0;
+      const keepTools=tools?tools.scrollLeft:0;
+      oldToggle.apply(this,arguments);
+      requestAnimationFrame(()=>{
+        if(tabScroll) tabScroll.scrollLeft=keepTab;
+        if(tools) tools.scrollLeft=keepTools;
+        computeMobileShortSize();
+      });
+    };
+  }
+
+  ['resize','orientationchange','scroll'].forEach(evt=>{
+    window.addEventListener(evt,()=>requestAnimationFrame(()=>{computeMobileShortSize();window.updateTopButton?.();}),{passive:true});
+  });
+  window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(computeMobileShortSize));
+  window.addEventListener('load',()=>{auditWorkoutData();computeMobileShortSize();window.updateTopButton?.();},{once:true});
+
+  try{auditWorkoutData();computeMobileShortSize();window.updateTopButton?.();}catch(e){console.warn('v36 check failed',e);}
+})();
+</script>
 
 </body>
 </html>
