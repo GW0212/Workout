@@ -8012,5 +8012,216 @@ body.dark .library-command-row > .subtabs-row .reorder-add.content-add{
 }
 </style>
 
+
+
+<!-- v48: mobile start backup center + order icon center + full shorts title fit -->
+<style>
+@media(max-width:900px){
+  /* 시작 화면: 백업 상태 영역 중앙 정렬 */
+  .start-dashboard .backup-status,
+  .start-dashboard .backup-status.good{
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+    gap:14px!important;
+    padding:18px 16px!important;
+  }
+  .start-dashboard .backup-status > div{
+    width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+  .start-dashboard .backup-status strong,
+  .start-dashboard .backup-status span{
+    width:100%!important;
+    display:block!important;
+    text-align:center!important;
+  }
+  .start-dashboard .backup-status .share-btn,
+  .start-dashboard .backup-status .share-btn.primary{
+    align-self:center!important;
+    margin:0 auto!important;
+    min-width:188px!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+
+  /* 순서 변경 버튼: 좌측 아이콘이 텍스트 기준으로 정확히 중앙에 오도록 보정 */
+  .library-command-row > .subtabs-row .reorder-add.content-add{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:4px!important;
+    line-height:1!important;
+    vertical-align:middle!important;
+  }
+  .library-command-row > .subtabs-row .reorder-add.content-add span[aria-hidden="true"]{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:15px!important;
+    min-width:15px!important;
+    height:15px!important;
+    min-height:15px!important;
+    line-height:1!important;
+    font-size:13px!important;
+    margin:0!important;
+    padding:0!important;
+    transform:none!important;
+    position:relative!important;
+    top:0!important;
+    vertical-align:middle!important;
+  }
+  .library-command-row > .subtabs-row .reorder-add.content-add .btn-lbl{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+  }
+
+  /* 숏폼 2열: 카드 높이는 같은 줄에서 자연스럽게 맞추고, 제목은 자르지 않는다 */
+  .grid[data-sub="shorts"]{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-auto-rows:auto!important;
+    align-items:stretch!important;
+  }
+  .grid[data-sub="shorts"] .card,
+  .card[data-vtype="shorts"]{
+    height:auto!important;
+    min-height:0!important;
+    align-self:stretch!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  .grid[data-sub="shorts"] .card-hd,
+  .card[data-vtype="shorts"] .card-hd{
+    height:auto!important;
+    min-height:126px!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding:9px 8px 14px!important;
+    align-items:flex-start!important;
+  }
+  .grid[data-sub="shorts"] .card-main,
+  .card[data-vtype="shorts"] .card-main{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+  }
+  .grid[data-sub="shorts"] .card-ttl,
+  .card[data-vtype="shorts"] .card-ttl{
+    width:100%!important;
+    max-width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    padding:42px 2px 0!important;
+    margin:0 auto!important;
+    display:block!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    white-space:normal!important;
+    -webkit-line-clamp:unset!important;
+    line-clamp:unset!important;
+    -webkit-box-orient:initial!important;
+    text-align:center!important;
+    word-break:keep-all!important;
+    overflow-wrap:anywhere!important;
+    letter-spacing:-.42px!important;
+    font-size:12.2px!important;
+    line-height:1.32!important;
+  }
+  .grid[data-sub="shorts"] .card-ttl.title-long,
+  .card[data-vtype="shorts"] .card-ttl.title-long{
+    font-size:11.4px!important;
+    line-height:1.30!important;
+    letter-spacing:-.52px!important;
+  }
+  .grid[data-sub="shorts"] .card-ttl.title-very-long,
+  .card[data-vtype="shorts"] .card-ttl.title-very-long{
+    font-size:10.7px!important;
+    line-height:1.27!important;
+    letter-spacing:-.58px!important;
+  }
+  .grid[data-sub="shorts"] .card-ttl.title-ultra-long,
+  .card[data-vtype="shorts"] .card-ttl.title-ultra-long{
+    font-size:10.1px!important;
+    line-height:1.23!important;
+    letter-spacing:-.62px!important;
+  }
+}
+@media(max-width:390px){
+  .grid[data-sub="shorts"] .card-hd,
+  .card[data-vtype="shorts"] .card-hd{
+    min-height:122px!important;
+    padding-left:7px!important;
+    padding-right:7px!important;
+  }
+  .grid[data-sub="shorts"] .card-ttl,
+  .card[data-vtype="shorts"] .card-ttl{
+    font-size:11.4px!important;
+    line-height:1.29!important;
+    letter-spacing:-.5px!important;
+  }
+  .grid[data-sub="shorts"] .card-ttl.title-long,
+  .card[data-vtype="shorts"] .card-ttl.title-long{font-size:10.7px!important;line-height:1.25!important;}
+  .grid[data-sub="shorts"] .card-ttl.title-very-long,
+  .card[data-vtype="shorts"] .card-ttl.title-very-long{font-size:10px!important;line-height:1.22!important;}
+  .grid[data-sub="shorts"] .card-ttl.title-ultra-long,
+  .card[data-vtype="shorts"] .card-ttl.title-ultra-long{font-size:9.5px!important;line-height:1.18!important;}
+}
+</style>
+<script>
+/* v48: 숏폼 제목 길이에 따라 모바일 제목 폰트 자동 축소 */
+(function(){
+  if(window.__WORKOUT_V48__) return;
+  window.__WORKOUT_V48__=true;
+  function applyShortsTitleFit(){
+    document.querySelectorAll('.grid[data-sub="shorts"] .card-ttl, .card[data-vtype="shorts"] .card-ttl').forEach(function(el){
+      var txt=(el.textContent||'').replace(/\s+/g,' ').trim();
+      var len=Array.from(txt).length;
+      el.classList.toggle('title-long', len>24);
+      el.classList.toggle('title-very-long', len>38);
+      el.classList.toggle('title-ultra-long', len>54);
+    });
+  }
+  var oldRenderItems=window.renderItems;
+  if(typeof oldRenderItems==='function'){
+    window.renderItems=function(){
+      var result=oldRenderItems.apply(this, arguments);
+      requestAnimationFrame(applyShortsTitleFit);
+      return result;
+    };
+  }
+  var oldRender=window.render;
+  if(typeof oldRender==='function'){
+    window.render=function(){
+      var result=oldRender.apply(this, arguments);
+      requestAnimationFrame(applyShortsTitleFit);
+      return result;
+    };
+  }
+  var ct=document.getElementById('ct');
+  if(ct){
+    var pending=false;
+    new MutationObserver(function(){
+      if(pending) return;
+      pending=true;
+      requestAnimationFrame(function(){pending=false;applyShortsTitleFit();});
+    }).observe(ct,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',applyShortsTitleFit);
+  else requestAnimationFrame(applyShortsTitleFit);
+})();
+</script>
+
 </body>
 </html>
