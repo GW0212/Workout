@@ -8251,5 +8251,131 @@ body.dark .library-command-row > .subtabs-row .reorder-add.content-add{
 })();
 </script>
 
+
+
+<!-- v52: hard-disable unstable mobile card drag; use order manager only on mobile -->
+<style>
+@media(max-width:900px){
+  body.v52-mobile-order-only #ct .grid .card,
+  body.v52-mobile-order-only #ct .grid .card *{
+    -webkit-user-drag:none!important;
+  }
+  body.v52-mobile-order-only #ct .grid .card,
+  body.v52-mobile-order-only #ct .grid .card .card-hd{
+    cursor:default!important;
+    touch-action:manipulation!important;
+  }
+  body.v52-mobile-order-only .v43-ghost,
+  body.v52-mobile-order-only .v43-ph,
+  body.v52-mobile-order-only .v42-ghost,
+  body.v52-mobile-order-only .v42-ph,
+  body.v52-mobile-order-only .v41-ghost,
+  body.v52-mobile-order-only .v41-ph,
+  body.v52-mobile-order-only .mobile-drag-ghost,
+  body.v52-mobile-order-only .mobile-drag-ph,
+  body.v52-mobile-order-only .v40-ghost,
+  body.v52-mobile-order-only .v40-ph,
+  body.v52-mobile-order-only .dghost,
+  body.v52-mobile-order-only .rph{
+    display:none!important;
+  }
+}
+</style>
+<script>
+(function(){
+  if(window.__WORKOUT_V52_MOBILE_DRAG_KILL__) return;
+  window.__WORKOUT_V52_MOBILE_DRAG_KILL__=true;
+
+  function isMobile(){
+    return window.matchMedia('(max-width:900px)').matches || (((navigator.maxTouchPoints||0)>0 || 'ontouchstart' in window) && innerWidth<=980);
+  }
+  function isEditableTarget(el){
+    return !!(el && el.closest('button,a,input,select,textarea,summary,.modal,.ov,.mclose,.share-btn,#btn-top,#btn-add,.tab,.subtab'));
+  }
+  function killArtifacts(){
+    document.querySelectorAll('.v43-ghost,.v43-ph,.v42-ghost,.v42-ph,.v41-ghost,.v41-ph,.mobile-drag-ghost,.mobile-drag-ph,.v40-ghost,.v40-ph,.dghost,.rph').forEach(el=>{
+      try{el.remove();}catch(_){ try{el.style.display='none';}catch(__){} }
+    });
+    document.querySelectorAll('.v43-src,.v42-src,.v41-src,.mobile-drag-src,.v40-src,.dsrc').forEach(el=>{
+      el.classList.remove('v43-src','v42-src','v41-src','mobile-drag-src','v40-src','dsrc');
+    });
+    document.body.classList.remove('v43-video-dragging','v42-video-dragging','v41-video-dragging','mobile-video-dragging','dragging');
+    const top=document.getElementById('v43-edge-top'), bottom=document.getElementById('v43-edge-bottom');
+    if(top) top.classList.remove('on');
+    if(bottom) bottom.classList.remove('on');
+  }
+  function lockMobileDrag(){
+    const mob=isMobile();
+    document.body.classList.toggle('v52-mobile-order-only',mob);
+    if(!mob) return;
+    document.querySelectorAll('#ct .grid').forEach(grid=>{
+      grid.dataset.dragDisabled='1';
+      grid.dataset.dragDisabledMobile='1';
+      grid.dataset.mobileOrderOnly='1';
+    });
+    document.querySelectorAll('#ct .grid .card').forEach(card=>{
+      card.dataset.dragDisabled='1';
+      card.dataset.mobileOrderOnly='1';
+      card.setAttribute('draggable','false');
+    });
+    killArtifacts();
+  }
+
+  // v43/v40 계열 터치 드래그는 window capture에서 먼저 타이머를 잡기 때문에,
+  // 같은 이벤트 안에서 즉시 dragDisabled를 세팅하여 이후 startDrag 재검증에서 반드시 중단되게 한다.
+  function preemptMobileDrag(e){
+    if(!isMobile()) return;
+    const t=e.target;
+    const card=t && t.closest && t.closest('#ct .grid .card');
+    if(!card) return;
+    const grid=card.closest('#ct .grid');
+    if(grid){grid.dataset.dragDisabled='1';grid.dataset.dragDisabledMobile='1';grid.dataset.mobileOrderOnly='1';}
+    card.dataset.dragDisabled='1';
+    card.dataset.mobileOrderOnly='1';
+    card.setAttribute('draggable','false');
+    // 영상 재생/버튼 클릭은 유지해야 하므로 전파 차단은 하지 않는다.
+    if(!isEditableTarget(t)) requestAnimationFrame(killArtifacts);
+  }
+
+  ['touchstart','pointerdown','mousedown'].forEach(evt=>{
+    window.addEventListener(evt,preemptMobileDrag,{capture:true,passive:true});
+  });
+  ['touchmove','pointermove','scroll'].forEach(evt=>{
+    window.addEventListener(evt,()=>{ if(isMobile()) requestAnimationFrame(lockMobileDrag); },{capture:true,passive:true});
+  });
+
+  const oldRender=window.render;
+  if(typeof oldRender==='function'){
+    window.render=function(){
+      const r=oldRender.apply(this,arguments);
+      requestAnimationFrame(lockMobileDrag);
+      setTimeout(lockMobileDrag,80);
+      return r;
+    };
+  }
+  const oldRenderItems=window.renderItems;
+  if(typeof oldRenderItems==='function'){
+    window.renderItems=function(){
+      const r=oldRenderItems.apply(this,arguments);
+      requestAnimationFrame(lockMobileDrag);
+      setTimeout(lockMobileDrag,80);
+      return r;
+    };
+  }
+
+  window.addEventListener('resize',()=>setTimeout(lockMobileDrag,60),{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(lockMobileDrag,160),{passive:true});
+  document.addEventListener('visibilitychange',()=>setTimeout(lockMobileDrag,60),{passive:true});
+
+  try{
+    const mo=new MutationObserver(()=>{ if(isMobile()) requestAnimationFrame(lockMobileDrag); });
+    mo.observe(document.getElementById('ct')||document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-drag-disabled']});
+  }catch(_){ }
+  lockMobileDrag();
+  setTimeout(lockMobileDrag,100);
+  setTimeout(lockMobileDrag,600);
+})();
+</script>
+
 </body>
 </html>
