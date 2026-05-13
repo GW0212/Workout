@@ -7892,5 +7892,125 @@ body.dark .library-command-row > .subtabs-row .reorder-add.content-add{
 }
 </style>
 
+
+<!-- v47: mobile equal shorts height + centered icons + simplified start screen -->
+<style>
+/* 제목 클릭 시작 화면의 최근 추가한 영상 제거 */
+.dash-recent{display:none!important;}
+
+@media(max-width:900px){
+  /* 모바일 검색창 돋보기 아이콘 정중앙 정렬 */
+  .library-command-row .lib-search-wrap{
+    position:relative!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+  .library-command-row .lib-search-icon{
+    position:absolute!important;
+    left:14px!important;
+    top:50%!important;
+    width:18px!important;
+    height:18px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+    transform:translateY(-50%)!important;
+    margin:0!important;
+    pointer-events:none!important;
+  }
+  .library-command-row .lib-search{
+    padding-left:38px!important;
+  }
+
+  /* 모바일 순서 변경 버튼의 좌측 아이콘 정중앙 정렬 */
+  .library-command-row > .subtabs-row .reorder-add.content-add{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
+  .library-command-row > .subtabs-row .reorder-add.content-add span[aria-hidden="true"]{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:16px!important;
+    min-width:16px!important;
+    height:16px!important;
+    line-height:1!important;
+    transform:none!important;
+    margin:0!important;
+  }
+
+  /* 모바일 숏폼 2열 카드 높이 균일화 */
+  .grid[data-sub="shorts"]{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    justify-items:stretch!important;
+    grid-auto-rows:1fr!important;
+  }
+  .grid[data-sub="shorts"] .card{
+    height:100%!important;
+    min-height:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-self:stretch!important;
+    overflow:hidden!important;
+  }
+  .grid[data-sub="shorts"] .card-hd{
+    height:116px!important;
+    min-height:116px!important;
+    max-height:116px!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    overflow:hidden!important;
+  }
+  .grid[data-sub="shorts"] .card-main{
+    width:100%!important;
+    min-width:0!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+  }
+  .grid[data-sub="shorts"] .card-ttl{
+    width:100%!important;
+    min-height:0!important;
+    max-height:62px!important;
+    overflow:hidden!important;
+    text-align:center!important;
+    display:-webkit-box!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:3!important;
+    line-clamp:3!important;
+  }
+  .grid[data-sub="shorts"] .ytbox.shorts,
+  .grid[data-sub="shorts"] .ytbox.shorts.playing{
+    width:100%!important;
+    aspect-ratio:9/16!important;
+    height:auto!important;
+    min-height:0!important;
+    padding-bottom:0!important;
+    flex:0 0 auto!important;
+  }
+  .grid[data-sub="shorts"] .ytbox.shorts > *,
+  .grid[data-sub="shorts"] .ytbox.shorts iframe{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+  }
+}
+
+@media(max-width:390px){
+  .grid[data-sub="shorts"] .card-hd{
+    height:108px!important;
+    min-height:108px!important;
+    max-height:108px!important;
+  }
+  .grid[data-sub="shorts"] .card-ttl{
+    max-height:56px!important;
+    font-size:11.5px!important;
+  }
+}
+</style>
+
 </body>
 </html>
