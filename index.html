@@ -2956,6 +2956,37 @@ body.dark .lib-filter-btn.on{
 }
 </style>
 
+
+<style>
+/* v50: PC 영상 관리 창 주요 버튼 3개 한 줄 정렬 */
+.item-actions-modal .video-manage-main-row{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
+  width:100%;
+}
+.item-actions-modal .video-manage-main-row .share-btn{
+  width:100%;
+  min-width:0;
+  justify-content:center;
+  text-align:center;
+  white-space:nowrap;
+  padding-left:8px;
+  padding-right:8px;
+}
+@media(max-width:768px){
+  .item-actions-modal .video-manage-main-row{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+  }
+  .item-actions-modal .video-manage-main-row .share-btn{
+    min-height:42px;
+    font-size:12px;
+    letter-spacing:-.3px;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -4714,11 +4745,8 @@ installV25MobileFixes();
         <div class="action-fixed-type"><span>영상 유형은 자동 감지 결과를 유지합니다.</span><b>${SUBS[type].icon} ${SUBS[type].label}</b></div>
         ${moveArea}
         <button class="share-btn primary full" ${moveDisabled} onclick="applyItemActionChanges('${iid}','${mid}')">선택 메뉴로 이동</button>
-        <div class="item-action-row">
-          <button class="share-btn" onclick="toggleFavorite('${iid}','${mid}');closeModal('m-item-actions')">${it.favorite?'★ 즐겨찾기 해제':'☆ 즐겨찾기'}</button>
-          <button class="share-btn" onclick="toggleWatched('${iid}','${mid}');closeModal('m-item-actions')">${it.watched?'✓ 시청완료 해제':'✓ 시청완료'}</button>
-        </div>
-        <div class="item-action-row">
+        <div class="item-action-row triple video-manage-main-row">
+          <button class="share-btn" onclick="toggleFavorite('${iid}','${mid}');closeModal('m-item-actions')">${it.favorite?'★ 즐겨찾기 해제':'★ 즐겨찾기'}</button>
           <button class="share-btn" onclick="copyItemLink('${iid}','${mid}')">🔗 링크 복사</button>
           <button class="share-btn" onclick="openEditLink('${iid}','${mid}');closeModal('m-item-actions')">수정</button>
         </div>
@@ -7476,7 +7504,7 @@ body.dark .order-btn{background:#202938;border-color:#8896ad;color:#eef3fb;}
     }).join('') || '<div class="share-empty-small">현재 탭에 정렬할 영상이 없습니다.</div>';
     ov.innerHTML=`<div class="modal order-modal">
       <div class="mrow"><div class="mttl">영상 <span class="ac">순서 변경</span></div><button class="mclose" onclick="closeModal('m-order')">✕</button></div>
-      <div class="order-head-note"><b>${esc44(menu?.name||'현재 메뉴')}</b> / <b>${esc44(typeLabel(type))}</b><br/>드래그 대신 버튼으로 순서를 바꿉니다. 1번 ↔ 3번처럼 떨어진 영상도 맨 위/맨 아래 버튼으로 바로 이동할 수 있습니다.</div>
+      <div class="order-head-note"><b>${esc44(menu?.name||'현재 메뉴')}</b> / <b>${esc44(typeLabel(type))}</b></div>
       <div class="order-list">${rows}</div>
       <div class="order-actions"><button class="share-btn" type="button" onclick="closeModal('m-order')">취소</button><button class="share-btn primary" type="button" onclick="applyOrderManager()">순서 저장</button></div>
     </div>`;
