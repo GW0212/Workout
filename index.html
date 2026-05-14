@@ -393,19 +393,42 @@ function renderHome(){
 }
 function currentMenu(){return data.menus.find(m=>m.id===activeMenuId)}
 function menuItems(){return data.items[activeMenuId]||[]}
+function normSearch(s){
+  return String(s||'').normalize('NFC').toLocaleLowerCase('ko-KR').trim();
+}
+function compactSearch(s){
+  return normSearch(s).replace(/\s+/g,'');
+}
+function videoSearchText(v){
+  // 검색 대상은 영상 제목과 메모만 사용합니다. URL/유튜브 ID는 검색에서 제외합니다.
+  return normSearch(`${v?.title||v?.name||''} ${v?.memo||v?.content||''}`);
+}
+function matchesSearch(v,q){
+  const query=normSearch(q);
+  if(!query)return true;
+  const target=videoSearchText(v);
+  return target.includes(query)||compactSearch(target).includes(compactSearch(query));
+}
 function filteredItems(){
   let arr=menuItems().filter(v=>v.type===activeType);
-  if(searchText.trim()){const q=searchText.trim().toLowerCase();arr=arr.filter(v=>(v.title+' '+v.memo+' '+v.link).toLowerCase().includes(q));}
+  if(searchText.trim())arr=arr.filter(v=>matchesSearch(v,searchText));
   if(favOnly)arr=arr.filter(v=>isFav(v));
   if(sortMode==='new')arr=[...arr].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
   if(sortMode==='old')arr=[...arr].sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
-  if(sortMode==='title')arr=[...arr].sort((a,b)=>a.title.localeCompare(b.title,'ko'));
+  if(sortMode==='title')arr=[...arr].sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'ko'));
   return arr;
+}
+function filteredTotalCount(){
+  return menuItems()
+    .filter(v=>v.type===activeType)
+    .filter(v=>!favOnly||isFav(v))
+    .filter(v=>matchesSearch(v,searchText))
+    .length;
 }
 function renderWorkspace(){
   const menu=currentMenu(); if(!menu){homeMode=true;renderHome();return}
   const shorts=menuItems().filter(v=>v.type==='shorts').length, long=menuItems().filter(v=>v.type==='longform').length;
-  const arr=filteredItems(); const total=menuItems().filter(v=>v.type===activeType).filter(v=>!favOnly||isFav(v)).filter(v=>!searchText.trim()||(v.title+' '+v.memo+' '+v.link).toLowerCase().includes(searchText.trim().toLowerCase())).length;
+  const arr=filteredItems(); const total=filteredTotalCount();
   $('ct').innerHTML=`<section class="workspace"><div class="toolbar panel"><div class="desktop-tools searchbar"><span class="search-icon">⌕</span><input id="searchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><div class="desktop-tools toolbar-actions"><select id="sortSelect" onchange="setSort(this.value)"><option value="manual">직접 정렬</option><option value="new">최신순</option><option value="old">오래된순</option><option value="title">제목순</option></select><button class="btn small ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button><button class="btn small" onclick="clearFilters()">초기화</button><span class="count-chip">${arr.length}/${total}</span><div class="subtabs"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button></div><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div><div class="mobile-tools"><div class="mobile-search-row"><div class="searchbar"><span class="search-icon">⌕</span><input id="mSearchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><button class="btn ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button></div><div class="mobile-sub-row"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div></div></div><div id="gridWrap"></div></section>`;
   const s=$('sortSelect'); if(s)s.value=sortMode;
   renderCards(arr,total);
@@ -417,8 +440,9 @@ function setSearch(v){
   searchTimer=setTimeout(()=>{
     if($('gridWrap')){
       const arr=filteredItems();
-      document.querySelectorAll('.count-chip').forEach(ch=>ch.textContent=`${arr.length}/${arr.length}`);
-      renderCards(arr,arr.length);
+      const total=filteredTotalCount();
+      document.querySelectorAll('.count-chip').forEach(ch=>ch.textContent=`${arr.length}/${total}`);
+      renderCards(arr,total);
       const input=isMobile()?$('mSearchInput'):$('searchInput');
       if(input&&document.activeElement!==input){
         input.focus({preventScroll:true});
