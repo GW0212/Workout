@@ -243,6 +243,17 @@ body.dark .drop-placeholder{
   .iconbtn{width:36px!important;height:36px!important}
 }
 
+
+/* v65: default light/start polish, stable search input, smaller mobile order titles */
+@media(max-width:768px){
+  .order-title{font-size:13px!important;line-height:1.35!important;letter-spacing:-.35px!important;}
+  .order-meta{font-size:11px!important;line-height:1.3!important;}
+  .order-item{grid-template-columns:36px 1fr auto!important;gap:8px!important;}
+}
+@media(max-width:430px){
+  .order-title{font-size:12.5px!important;}
+}
+
 </style>
 </head>
 <body>
@@ -395,11 +406,27 @@ function renderWorkspace(){
   const menu=currentMenu(); if(!menu){homeMode=true;renderHome();return}
   const shorts=menuItems().filter(v=>v.type==='shorts').length, long=menuItems().filter(v=>v.type==='longform').length;
   const arr=filteredItems(); const total=menuItems().filter(v=>v.type===activeType).filter(v=>!favOnly||isFav(v)).filter(v=>!searchText.trim()||(v.title+' '+v.memo+' '+v.link).toLowerCase().includes(searchText.trim().toLowerCase())).length;
-  $('ct').innerHTML=`<section class="workspace"><div class="toolbar panel"><div class="desktop-tools searchbar"><span class="search-icon">⌕</span><input id="searchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><div class="desktop-tools toolbar-actions"><select id="sortSelect" onchange="setSort(this.value)"><option value="manual">직접 정렬</option><option value="new">최신순</option><option value="old">오래된순</option><option value="title">제목순</option></select><button class="btn small ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button><button class="btn small" onclick="clearFilters()">초기화</button><span class="count-chip">${arr.length}/${total}</span><div class="subtabs"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button></div><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div><div class="mobile-tools"><div class="mobile-search-row"><div class="searchbar"><span class="search-icon">⌕</span><input id="mSearchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><button class="btn ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button></div><div class="mobile-sub-row"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div></div></div><div id="gridWrap"></div></section>`;
+  $('ct').innerHTML=`<section class="workspace"><div class="toolbar panel"><div class="desktop-tools searchbar"><span class="search-icon">⌕</span><input id="searchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><div class="desktop-tools toolbar-actions"><select id="sortSelect" onchange="setSort(this.value)"><option value="manual">직접 정렬</option><option value="new">최신순</option><option value="old">오래된순</option><option value="title">제목순</option></select><button class="btn small ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button><button class="btn small" onclick="clearFilters()">초기화</button><span class="count-chip">${arr.length}/${total}</span><div class="subtabs"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button></div><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div><div class="mobile-tools"><div class="mobile-search-row"><div class="searchbar"><span class="search-icon">⌕</span><input id="mSearchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><button class="btn ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button></div><div class="mobile-sub-row"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div></div></div><div id="gridWrap"></div></section>`;
   const s=$('sortSelect'); if(s)s.value=sortMode;
   renderCards(arr,total);
 }
-function setSearch(v){searchText=v;renderWorkspace()}
+let searchTimer=null;
+function setSearch(v){
+  searchText=v;
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>{
+    if($('gridWrap')){
+      const arr=filteredItems();
+      document.querySelectorAll('.count-chip').forEach(ch=>ch.textContent=`${arr.length}/${arr.length}`);
+      renderCards(arr,arr.length);
+      const input=isMobile()?$('mSearchInput'):$('searchInput');
+      if(input&&document.activeElement!==input){
+        input.focus({preventScroll:true});
+        try{input.setSelectionRange(input.value.length,input.value.length)}catch(_){ }
+      }
+    }else renderWorkspace();
+  },80);
+}
 function toggleFavFilter(){favOnly=!favOnly;renderWorkspace()}
 function clearFilters(){searchText='';favOnly=false;sortMode='manual';renderWorkspace()}
 function setSort(v){sortMode=v;renderWorkspace()}
@@ -451,7 +478,7 @@ function deleteMenu(id){const m=data.menus.find(x=>x.id===id); if(!m)return; con
 
 $('urlInput').addEventListener('input',()=>{const url=$('urlInput').value.trim();clearTimeout(detectTimer);lastDetect=null;if(!isYT(url)){setDetect('', '');return}setDetect('loading','영상 제목을 확인하는 중…');detectTimer=setTimeout(async()=>{const info=await detectYT(url);lastDetect=info;if(!info){setDetect('err','유튜브 링크를 확인해주세요.');return}if(info.title&&!$('titleInput').value.trim())$('titleInput').value=info.title;setDetect('ok',info.type==='shorts'?'⚡ 숏폼으로 감지되었습니다.':'▶ 롱폼으로 감지되었습니다.');},450)});
 function setDetect(cls,msg){const b=$('detectBox');if(!cls){b.className='detect';b.textContent='';return}b.className='detect show '+cls;b.textContent=msg}
-function openAddVideo(){if(!activeMenuId){openAddMenu();return}editVideo=null;editMenuId=null;lastDetect=null;['urlInput','titleInput','memoInput'].forEach(id=>$(id).value='');$('linkTitle').innerHTML='링크 <span>추가</span>';$('saveLinkBtn').textContent='저장';setDetect('','');openModal('linkModal')}
+function openAddVideo(){if(!activeMenuId){openAddMenu();return}editVideo=null;editMenuId=null;lastDetect=null;['urlInput','titleInput','memoInput'].forEach(id=>$(id).value='');$('linkTitle').innerHTML='링크 <span>추가</span>';$('saveLinkBtn').textContent='저장';setDetect('','');openModal('linkModal');setTimeout(()=>{const input=$('urlInput');if(input){input.focus({preventScroll:true});input.select();}},80)}
 function openEditVideo(id){const mid=findVideoMenu(id), v=findVideo(id); if(!v)return; editVideo=id; editMenuId=mid; $('linkTitle').innerHTML='영상 <span>수정</span>';$('urlInput').value=v.link;$('titleInput').value=v.title;$('memoInput').value=v.memo;$('saveLinkBtn').textContent='수정 저장';setDetect('','');openModal('linkModal')}
 async function saveVideo(){
   const url=$('urlInput').value.trim(), title=$('titleInput').value.trim(), memo=$('memoInput').value.trim(); if(!url&&!title&&!memo)return showToast('저장할 내용을 입력해주세요.');
@@ -663,6 +690,7 @@ document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.ov.open').forEach(o=>closeModal(o.id));closePlayer()}});
 window.addEventListener('scroll',()=>{$('toTop').classList.toggle('show',window.scrollY>420)},{passive:true});
 
+if(!localStorage.getItem(LS_THEME))localStorage.setItem(LS_THEME,'light');
 loadData();applyTheme();render();
 </script>
 </body>
