@@ -396,17 +396,34 @@ function menuItems(){return data.items[activeMenuId]||[]}
 function normSearch(s){
   return String(s||'').normalize('NFC').toLocaleLowerCase('ko-KR').trim();
 }
+function stripSearchNoise(s){
+  return normSearch(s)
+    .replace(/https?:\/\/\S+/g,' ')          // URL 제외
+    .replace(/www\.\S+/g,' ')                 // URL 제외
+    .replace(/youtu\.?be\S*/g,' ')            // 유튜브 도메인/ID성 문자열 제외
+    .replace(/#[\p{L}\p{N}_-]+/gu,' ')       // #shorts 같은 해시태그 제외
+    .replace(/[\u200b-\u200d\ufeff]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
 function compactSearch(s){
-  return normSearch(s).replace(/\s+/g,'');
+  return stripSearchNoise(s).replace(/\s+/g,'');
+}
+function isWeakLatinQuery(q){
+  const raw=normSearch(q).replace(/\s+/g,'');
+  // r, a 같은 한 글자 영문/숫자는 #shorts, ID, 자동 태그에 오탐이 많아서 검색으로 처리하지 않습니다.
+  return /^[a-z0-9]$/i.test(raw);
 }
 function videoSearchText(v){
-  // 검색 대상은 영상 제목과 메모만 사용합니다. URL/유튜브 ID는 검색에서 제외합니다.
-  return normSearch(`${v?.title||v?.name||''} ${v?.memo||v?.content||''}`);
+  // 검색 대상은 영상 제목과 메모만 사용합니다. URL/유튜브 ID/해시태그는 검색에서 제외합니다.
+  return stripSearchNoise(`${v?.title||v?.name||''} ${v?.memo||v?.content||''}`);
 }
 function matchesSearch(v,q){
-  const query=normSearch(q);
+  const query=stripSearchNoise(q);
   if(!query)return true;
+  if(isWeakLatinQuery(query))return false;
   const target=videoSearchText(v);
+  if(!target)return false;
   return target.includes(query)||compactSearch(target).includes(compactSearch(query));
 }
 function filteredItems(){
