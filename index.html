@@ -10884,5 +10884,133 @@ body.dark .mobile-player-btn{border-color:rgba(255,255,255,.26);background:#2020
 })();
 </script>
 
+
+
+<!-- v54: 모바일 YouTube 재생창 컨트롤 정리 + Shorts 재시청 안정화 -->
+<style>
+/* 모바일 대형 재생창의 자체 음량/전체화면 버튼은 제거하고, 닫기 버튼만 유지 */
+.mobile-player-actions .mobile-player-btn:not(.close){
+  display:none!important;
+}
+.mobile-player-actions{
+  gap:0!important;
+}
+.mobile-player-btn.close{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+@media(max-width:768px){
+  .mobile-player-top{
+    min-height:58px!important;
+    padding:12px 14px!important;
+  }
+  .mobile-player-title{
+    min-width:0!important;
+  }
+  .mobile-player-actions{
+    margin-left:auto!important;
+  }
+}
+</style>
+<script>
+/* v54: iOS/Safari에서 Shorts를 닫았다가 다시 열 때 재생이 멈추는 현상 방지
+   - 닫을 때 iframe src를 about:blank로 먼저 비우고 DOM에서 완전 제거
+   - 다시 열 때마다 새로운 iframe과 고유 URL을 생성
+   - 로드 직후 playVideo/unMute 명령을 여러 번 보내 재시청 안정성 보강 */
+(function(){
+  let mobilePlayerSeq=0;
+
+  function getMobileEmbedSrc(vid,type){
+    const origin=encodeURIComponent(location.origin&&location.origin!=='null'?location.origin:location.href.split('/').slice(0,3).join('/'));
+    const params=[
+      'autoplay=1',
+      'rel=0',
+      'playsinline=1',
+      'controls=1',
+      'fs=1',
+      'modestbranding=1',
+      'iv_load_policy=3',
+      'enablejsapi=1',
+      'start=0',
+      `origin=${origin}`,
+      `v54=${Date.now()}_${++mobilePlayerSeq}`
+    ];
+    return `https://www.youtube.com/embed/${vid}?${params.join('&')}`;
+  }
+
+  function hardClearMobileStage(){
+    const stage=document.getElementById('mobile-player-stage');
+    if(!stage) return;
+    const frames=stage.querySelectorAll('iframe');
+    frames.forEach(frame=>{
+      try{ frame.contentWindow?.postMessage(JSON.stringify({event:'command',func:'stopVideo',args:[]}),'https://www.youtube.com'); }catch(_){ }
+      try{ frame.src='about:blank'; }catch(_){ }
+      try{ frame.remove(); }catch(_){ }
+    });
+    try{ stage.replaceChildren(); }catch(_){ stage.innerHTML=''; }
+  }
+
+  window.closeMobilePlayer=function(){
+    const ov=document.getElementById('m-mobile-player');
+    hardClearMobileStage();
+    if(ov){
+      ov.classList.remove('open');
+      ov.setAttribute('aria-hidden','true');
+    }
+    document.body.classList.remove('mobile-player-lock');
+  };
+
+  window.playMobile=function(vid,type='longform'){
+    const ov=document.getElementById('m-mobile-player');
+    const stage=document.getElementById('mobile-player-stage');
+    if(!ov||!stage||!vid) return;
+
+    // 이전 iframe 잔여 상태를 완전히 제거한 뒤 새 플레이어 생성
+    hardClearMobileStage();
+
+    const vtype=type==='shorts'?'shorts':'longform';
+    stage.className='mobile-player-stage '+(vtype==='shorts'?'short-player':'long-player');
+
+    const frameWrap=document.createElement('div');
+    frameWrap.className='mobile-player-frame '+vtype;
+
+    const iframe=document.createElement('iframe');
+    iframe.title='YouTube video player';
+    iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
+    iframe.setAttribute('allowfullscreen','');
+    iframe.setAttribute('webkitallowfullscreen','');
+    iframe.setAttribute('mozallowfullscreen','');
+    iframe.referrerPolicy='strict-origin-when-cross-origin';
+    iframe.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:none;display:block;background:#000;';
+    iframe.src=getMobileEmbedSrc(vid,vtype);
+
+    frameWrap.appendChild(iframe);
+    stage.appendChild(frameWrap);
+
+    ov.classList.add('open');
+    ov.setAttribute('aria-hidden','false');
+    document.body.classList.add('mobile-player-lock');
+
+    // 같은 Shorts를 재오픈할 때 iOS Safari가 재생 명령을 한 번 씹는 경우가 있어 재시도한다.
+    const kick=()=>{
+      try{
+        iframe.contentWindow?.postMessage(JSON.stringify({event:'command',func:'unMute',args:[]}),'https://www.youtube.com');
+        iframe.contentWindow?.postMessage(JSON.stringify({event:'command',func:'setVolume',args:[100]}),'https://www.youtube.com');
+        iframe.contentWindow?.postMessage(JSON.stringify({event:'command',func:'playVideo',args:[]}),'https://www.youtube.com');
+      }catch(_){ }
+    };
+    iframe.addEventListener('load',()=>{ setTimeout(kick,120); setTimeout(kick,650); },{once:true});
+    setTimeout(kick,900);
+    setTimeout(kick,1600);
+  };
+
+  // 외부 영역 터치/ESC 닫기에서도 새 closeMobilePlayer가 사용되도록 보강
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){ hardClearMobileStage(); }
+  },{passive:true});
+})();
+</script>
+
 </body>
 </html>
