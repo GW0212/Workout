@@ -185,6 +185,64 @@ body.dark .drop-placeholder{
   }
 }
 
+
+/* v64: mobile compact header/tools + robust favorite visual reset */
+.card:not(.fav) .iconbtn:not(.on){
+  color:var(--muted)!important;
+  border-color:var(--border2)!important;
+  background:var(--surface)!important;
+}
+.card:not(.fav){
+  box-shadow:var(--shadow);
+}
+@media(max-width:768px){
+  :root{--hdrH:88px;--tabH:56px}
+  #hdr{min-height:var(--hdrH)!important;padding:10px 16px!important;gap:8px!important}
+  .logo{font-size:21px!important;gap:10px!important;padding:4px 6px!important}
+  .logo-dot{width:44px!important;height:44px!important;border-radius:14px!important}
+  .h-actions{gap:8px!important}
+  .hbtn{width:46px!important;height:46px!important;min-width:46px!important;border-radius:15px!important;font-size:18px!important;padding:0!important}
+  #tabs{top:var(--hdrH)!important;min-height:var(--tabH)!important;padding:6px 12px!important}
+  #tab-scroll{gap:7px!important;padding:1px 0!important}
+  .tab{height:42px!important;border-radius:15px!important;padding:0 12px!important;font-size:15px!important;gap:7px!important}
+  .tab-name{max-width:112px!important}
+  .tab-count{min-width:27px!important;height:27px!important;font-size:14px!important}
+  .tab-tools{gap:5px!important}
+  .tab-tool{width:34px!important;height:34px!important;border-radius:12px!important;font-size:15px!important}
+  .new-tab{min-width:42px!important;font-size:18px!important}
+  #main{padding:18px 14px 92px!important}
+  .toolbar.panel{padding:10px!important;margin-bottom:12px!important;border-radius:18px!important}
+  .mobile-search-row{grid-template-columns:1fr 126px!important;gap:8px!important;margin-bottom:9px!important}
+  .searchbar{height:46px!important;border-radius:16px!important;padding:0 12px!important;gap:7px!important}
+  .search-icon{width:20px!important;font-size:15px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important}
+  .searchbar input{font-size:14px!important;letter-spacing:-.2px!important}
+  .mobile-search-row .btn{height:46px!important;border-radius:16px!important;font-size:14px!important;padding:0 10px!important}
+  .mobile-sub-row{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important}
+  .mobile-sub-row .subtab,.mobile-sub-row .btn{height:44px!important;border-radius:15px!important;padding:0 5px!important;font-size:13px!important;gap:4px!important;letter-spacing:-.4px!important}
+  .mobile-sub-row .subtab b{display:none!important}
+  .order-btn{gap:4px!important}
+  .order-icon{font-size:13px!important;line-height:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
+  .grid{gap:12px!important}
+  .card-head{min-height:118px!important;padding:9px 8px 10px!important;gap:6px!important}
+  .badge{height:29px!important;font-size:12px!important;padding:0 8px!important}
+  .iconbtn{width:38px!important;height:38px!important;border-radius:13px!important;font-size:18px!important}
+  .iconbtn.more{font-size:24px!important;padding-bottom:2px!important}
+  .card-actions{gap:6px!important}
+  .card-title{min-height:58px!important;font-size:clamp(12px,3.05vw,16px)!important;line-height:1.24!important;padding:2px 2px!important}
+  .grid.shorts .card-title{min-height:70px!important;font-size:clamp(11px,3vw,15px)!important}
+  .playmark{width:58px!important;height:42px!important;border-radius:14px!important}
+  .playmark:after{border-left-width:15px!important;border-top-width:9px!important;border-bottom-width:9px!important}
+}
+@media(max-width:430px){
+  .mobile-search-row{grid-template-columns:1fr 112px!important}
+  .mobile-search-row .btn{font-size:13px!important}
+  .mobile-sub-row{gap:6px!important}
+  .mobile-sub-row .subtab,.mobile-sub-row .btn{height:42px!important;font-size:12px!important;padding:0 4px!important}
+  .card-head{min-height:112px!important}
+  .grid.shorts .card-title{min-height:66px!important;font-size:clamp(10.5px,2.9vw,14px)!important}
+  .iconbtn{width:36px!important;height:36px!important}
+}
+
 </style>
 </head>
 <body>
@@ -253,6 +311,8 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,9);
 const isMobile=()=>matchMedia('(max-width:768px), (pointer:coarse)').matches;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const asBool=v=>v===true||v===1||v==='1'||String(v).toLowerCase()==='true'||v==='on';
+const isFav=v=>asBool(v?.favorite)||asBool(v?.fav);
+function normalizeFavorites(){Object.values(data.items||{}).forEach(arr=>(arr||[]).forEach(v=>{v.favorite=isFav(v);delete v.fav;}));}
 const nowStr=()=>new Date().toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
 
 function loadData(){
@@ -270,7 +330,7 @@ function loadData(){
       return {id,title:String(v.title||v.name||link||'제목 없음'),link,memo:String(v.memo||v.content||''),type:type==='shorts'?'shorts':'longform',favorite:asBool(v.favorite)||asBool(v.fav),createdAt:v.createdAt||new Date().toISOString(),ratio:v.ratio||null};
     });
   });
-  data.items=newItems; save();
+  data.items=newItems; normalizeFavorites(); save();
   activeMenuId=localStorage.getItem(LS_MENU); if(!data.menus.some(m=>m.id===activeMenuId))activeMenuId=data.menus[0]?.id||null;
   activeType=localStorage.getItem(LS_TYPE)||'shorts'; if(!['shorts','longform'].includes(activeType))activeType='shorts';
 }
@@ -325,7 +385,7 @@ function menuItems(){return data.items[activeMenuId]||[]}
 function filteredItems(){
   let arr=menuItems().filter(v=>v.type===activeType);
   if(searchText.trim()){const q=searchText.trim().toLowerCase();arr=arr.filter(v=>(v.title+' '+v.memo+' '+v.link).toLowerCase().includes(q));}
-  if(favOnly)arr=arr.filter(v=>v.favorite);
+  if(favOnly)arr=arr.filter(v=>isFav(v));
   if(sortMode==='new')arr=[...arr].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
   if(sortMode==='old')arr=[...arr].sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
   if(sortMode==='title')arr=[...arr].sort((a,b)=>a.title.localeCompare(b.title,'ko'));
@@ -334,7 +394,7 @@ function filteredItems(){
 function renderWorkspace(){
   const menu=currentMenu(); if(!menu){homeMode=true;renderHome();return}
   const shorts=menuItems().filter(v=>v.type==='shorts').length, long=menuItems().filter(v=>v.type==='longform').length;
-  const arr=filteredItems(); const total=menuItems().filter(v=>v.type===activeType).filter(v=>!favOnly||v.favorite).filter(v=>!searchText.trim()||(v.title+' '+v.memo+' '+v.link).toLowerCase().includes(searchText.trim().toLowerCase())).length;
+  const arr=filteredItems(); const total=menuItems().filter(v=>v.type===activeType).filter(v=>!favOnly||isFav(v)).filter(v=>!searchText.trim()||(v.title+' '+v.memo+' '+v.link).toLowerCase().includes(searchText.trim().toLowerCase())).length;
   $('ct').innerHTML=`<section class="workspace"><div class="toolbar panel"><div class="desktop-tools searchbar"><span class="search-icon">⌕</span><input id="searchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><div class="desktop-tools toolbar-actions"><select id="sortSelect" onchange="setSort(this.value)"><option value="manual">직접 정렬</option><option value="new">최신순</option><option value="old">오래된순</option><option value="title">제목순</option></select><button class="btn small ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button><button class="btn small" onclick="clearFilters()">초기화</button><span class="count-chip">${arr.length}/${total}</span><div class="subtabs"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button></div><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div><div class="mobile-tools"><div class="mobile-search-row"><div class="searchbar"><span class="search-icon">⌕</span><input id="mSearchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><button class="btn ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button></div><div class="mobile-sub-row"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div></div></div><div id="gridWrap"></div></section>`;
   const s=$('sortSelect'); if(s)s.value=sortMode;
   renderCards(arr,total);
@@ -354,10 +414,10 @@ function renderCards(arr,total){
 }
 function cardEl(v,canDrag){
   const id=getId(v.link), badge=v.type==='shorts'?'<span class="badge">⚡ 숏폼</span>':'<span class="badge long">▶ 롱폼</span>';
-  const el=document.createElement('article'); el.className='card '+(v.type==='shorts'?'shorts':'longform')+(v.favorite?' fav':''); el.dataset.id=v.id; el.draggable=canDrag;
+  const el=document.createElement('article'); el.className='card '+(v.type==='shorts'?'shorts':'longform')+(isFav(v)?' fav':''); el.dataset.id=v.id; el.draggable=canDrag;
   const title=esc(v.title||v.link||'제목 없음');
   const media=id?`<div class="ytbox"><button class="ytthumb" onclick="handlePlay(event,'${v.id}')">${thumbImg(id)}<span class="playmark"></span></button></div>`:`<div class="memo"><a href="${esc(v.link)}" target="_blank" rel="noopener">${esc(v.link)}</a></div>`;
-  el.innerHTML=`<div class="card-head">${badge}<div class="card-actions"><button class="iconbtn ${v.favorite?'on':''}" onclick="event.stopPropagation();toggleFav('${v.id}')" title="즐겨찾기">★</button><button class="iconbtn more" onclick="event.stopPropagation();openManage('${v.id}')" title="영상 관리">⋯</button></div><div class="card-title">${title}</div></div>${media}${v.memo?`<div class="memo">${esc(v.memo)}</div>`:''}`;
+  el.innerHTML=`<div class="card-head">${badge}<div class="card-actions"><button class="iconbtn ${isFav(v)?'on':''}" onclick="event.stopPropagation();toggleFav('${v.id}')" title="즐겨찾기">★</button><button class="iconbtn more" onclick="event.stopPropagation();openManage('${v.id}')" title="영상 관리">⋯</button></div><div class="card-title">${title}</div></div>${media}${v.memo?`<div class="memo">${esc(v.memo)}</div>`:''}`;
   return el;
 }
 function handlePlay(e,id){const v=findVideo(id); if(!v)return; if(isMobile())openPlayer(v); else playInCard(e.currentTarget.parentElement,getId(v.link));}
@@ -369,14 +429,16 @@ function toggleFav(id){
   for(const mid of Object.keys(data.items)){
     (data.items[mid]||[]).forEach(v=>{
       if(String(v.id)===target){
-        v.favorite=!asBool(v.favorite);
+        const cur=isFav(v);
+        next=!cur;
+        v.favorite=next;
         delete v.fav;
-        next=v.favorite;
         changed=true;
       }
     });
   }
   if(!changed)return;
+  normalizeFavorites();
   save();
   render();
   showToast(next?'즐겨찾기에 추가했습니다.':'즐겨찾기를 해제했습니다.');
@@ -400,7 +462,7 @@ async function saveVideo(){
   data.items[activeMenuId].push(v); activeType=type; save();persistState();closeModal('linkModal');render();showToast('영상을 저장했습니다.');
 }
 
-function openManage(id){const v=findVideo(id), mid=findVideoMenu(id), m=data.menus.find(x=>x.id===mid); if(!v)return; const others=data.menus.filter(x=>x.id!==mid); $('manageBody').innerHTML=`<div class="manage-title">${esc(v.title)}</div><div class="type-row"><span>영상 유형은 자동 감지 결과를 유지합니다.</span><strong>${v.type==='shorts'?'⚡ 숏폼':'▶ 롱폼'}</strong></div><div class="field"><label class="label">이동할 메뉴</label><select id="moveMenuSelect" class="select">${others.length?others.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join(''):`<option value="">다른 메뉴 없음</option>`}</select></div><button class="btn primary" style="width:100%;margin-bottom:10px" onclick="moveVideo('${id}')">선택 메뉴로 이동</button><div class="manage-row"><button class="btn" onclick="toggleFav('${id}');openManage('${id}')">${v.favorite?'★ 즐겨찾기 해제':'☆ 즐겨찾기'}</button><button class="btn" onclick="copyLink('${id}')">🔗 링크 복사</button><button class="btn" onclick="closeModal('manageModal');openEditVideo('${id}')">수정</button></div><button class="btn danger" style="width:100%" onclick="deleteVideo('${id}')">삭제</button>`; openModal('manageModal')}
+function openManage(id){const v=findVideo(id), mid=findVideoMenu(id), m=data.menus.find(x=>x.id===mid); if(!v)return; const others=data.menus.filter(x=>x.id!==mid); $('manageBody').innerHTML=`<div class="manage-title">${esc(v.title)}</div><div class="type-row"><span>영상 유형은 자동 감지 결과를 유지합니다.</span><strong>${v.type==='shorts'?'⚡ 숏폼':'▶ 롱폼'}</strong></div><div class="field"><label class="label">이동할 메뉴</label><select id="moveMenuSelect" class="select">${others.length?others.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join(''):`<option value="">다른 메뉴 없음</option>`}</select></div><button class="btn primary" style="width:100%;margin-bottom:10px" onclick="moveVideo('${id}')">선택 메뉴로 이동</button><div class="manage-row"><button class="btn" onclick="toggleFav('${id}');openManage('${id}')">${isFav(v)?'★ 즐겨찾기 해제':'☆ 즐겨찾기'}</button><button class="btn" onclick="copyLink('${id}')">🔗 링크 복사</button><button class="btn" onclick="closeModal('manageModal');openEditVideo('${id}')">수정</button></div><button class="btn danger" style="width:100%" onclick="deleteVideo('${id}')">삭제</button>`; openModal('manageModal')}
 function moveVideo(id){const target=$('moveMenuSelect').value; if(!target)return showToast('이동할 다른 메뉴가 없습니다.'); const mid=findVideoMenu(id); const arr=data.items[mid]||[]; const idx=arr.findIndex(v=>v.id===id); if(idx<0)return; const [v]=arr.splice(idx,1); if(!(data.items[target]||[]).some(x=>x.link&&x.link===v.link))data.items[target].push(v); save(); closeModal('manageModal'); render(); showToast('선택한 메뉴로 이동했습니다.')}
 function copyLink(id){const v=findVideo(id); if(!v)return; navigator.clipboard?.writeText(v.link).then(()=>showToast('링크를 복사했습니다.')).catch(()=>prompt('링크를 복사하세요',v.link))}
 function deleteVideo(id){const mid=findVideoMenu(id); if(!mid)return; if(!confirm('이 영상을 삭제할까요?'))return; data.items[mid]=data.items[mid].filter(v=>v.id!==id); save(); closeModal('manageModal'); render(); showToast('영상을 삭제했습니다.')}
@@ -593,7 +655,7 @@ async function pasteImportCode(){try{$('importCode').value=await navigator.clipb
 function loadImportData(txt){try{const obj=JSON.parse(txt);importData=normalizeImport(obj);renderImportTree();showToast('가져올 데이터를 읽었습니다.')}catch(e){showToast('가져올 수 없는 데이터입니다.')}}
 function normalizeImport(obj){const menus=Array.isArray(obj.menus)?obj.menus:[];const items=obj.items&&typeof obj.items==='object'?obj.items:{};return {menus:menus.map(m=>({id:String(m.id||uid()),name:String(m.name||'메뉴')})),items}}
 function renderImportTree(){const tree=$('importTree');tree.classList.remove('hidden');tree.innerHTML=importData.menus.map(m=>`<details class="tree-menu" open><summary><label><input type="checkbox" class="im-menu" data-mid="${m.id}" checked> ${esc(m.name)}</label><span>${(importData.items[m.id]||[]).length}</span></summary><div class="tree-items">${(importData.items[m.id]||[]).map((v,i)=>`<label class="checkrow"><input type="checkbox" class="im-item" data-mid="${m.id}" data-idx="${i}" checked><span>${esc(v.title||v.name||v.link||v.url||'제목 없음')}</span></label>`).join('')}</div></details>`).join('')}
-function applyImportSelection(){if(!importData)return showToast('먼저 데이터를 읽어주세요.');document.querySelectorAll('.im-menu').forEach(ch=>{const src=importData.menus.find(m=>m.id===ch.dataset.mid);const ids=[...document.querySelectorAll(`.im-item[data-mid="${src.id}"]:checked`)].map(x=>Number(x.dataset.idx));if(!ch.checked&&!ids.length)return;let dst=data.menus.find(m=>m.name===src.name);if(!dst){dst={id:uid(),name:src.name};data.menus.push(dst);data.items[dst.id]=[]}const arr=importData.items[src.id]||[];ids.forEach(i=>{const raw=arr[i];const link=String(raw.link||raw.url||'').trim();if(link&&data.items[dst.id].some(v=>v.link===link))return;data.items[dst.id].push({id:uid(),title:String(raw.title||raw.name||link||'제목 없음'),link,memo:String(raw.memo||raw.content||''),type:(raw.type||raw.vtype||detectType(link))==='shorts'?'shorts':'longform',favorite:!!(raw.favorite||raw.fav),createdAt:raw.createdAt||new Date().toISOString()})})});save();closeModal('shareModal');render();showToast('데이터 가져오기를 완료했습니다.')}
+function applyImportSelection(){if(!importData)return showToast('먼저 데이터를 읽어주세요.');document.querySelectorAll('.im-menu').forEach(ch=>{const src=importData.menus.find(m=>m.id===ch.dataset.mid);const ids=[...document.querySelectorAll(`.im-item[data-mid="${src.id}"]:checked`)].map(x=>Number(x.dataset.idx));if(!ch.checked&&!ids.length)return;let dst=data.menus.find(m=>m.name===src.name);if(!dst){dst={id:uid(),name:src.name};data.menus.push(dst);data.items[dst.id]=[]}const arr=importData.items[src.id]||[];ids.forEach(i=>{const raw=arr[i];const link=String(raw.link||raw.url||'').trim();if(link&&data.items[dst.id].some(v=>v.link===link))return;data.items[dst.id].push({id:uid(),title:String(raw.title||raw.name||link||'제목 없음'),link,memo:String(raw.memo||raw.content||''),type:(raw.type||raw.vtype||detectType(link))==='shorts'?'shorts':'longform',favorite:asBool(raw.favorite)||asBool(raw.fav),createdAt:raw.createdAt||new Date().toISOString()})})});save();closeModal('shareModal');render();showToast('데이터 가져오기를 완료했습니다.')}
 
 function openModal(id){$(id).classList.add('open');document.body.classList.add('no-scroll')}
 function closeModal(id){$(id).classList.remove('open');if(!document.querySelector('.ov.open')&&!$('playerModal').classList.contains('open'))document.body.classList.remove('no-scroll')}
