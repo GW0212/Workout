@@ -398,32 +398,40 @@ function normSearch(s){
 }
 function stripSearchNoise(s){
   return normSearch(s)
-    .replace(/https?:\/\/\S+/g,' ')          // URL 제외
-    .replace(/www\.\S+/g,' ')                 // URL 제외
-    .replace(/youtu\.?be\S*/g,' ')            // 유튜브 도메인/ID성 문자열 제외
-    .replace(/#[\p{L}\p{N}_-]+/gu,' ')       // #shorts 같은 해시태그 제외
-    .replace(/[\u200b-\u200d\ufeff]/g,' ')
+    .replace(/[​-‍﻿]/g,' ')
     .replace(/\s+/g,' ')
     .trim();
 }
 function compactSearch(s){
   return stripSearchNoise(s).replace(/\s+/g,'');
 }
-function isWeakLatinQuery(q){
-  const raw=normSearch(q).replace(/\s+/g,'');
-  // r, a 같은 한 글자 영문/숫자는 #shorts, ID, 자동 태그에 오탐이 많아서 검색으로 처리하지 않습니다.
-  return /^[a-z0-9]$/i.test(raw);
+function looksLikeUrlText(s){
+  return /^(https?:\/\/|www\.|youtube\.com|youtu\.be)/i.test(String(s||'').trim());
+}
+function visibleTitleOf(v){
+  const rawTitle=String(v?.title||v?.name||'').trim();
+  // 카드에 실제로 제목처럼 보이는 값만 검색합니다.
+  // 제목이 비어 있어 카드가 링크를 제목처럼 보여주는 경우에만 link/url을 제목으로 간주합니다.
+  return rawTitle || String(v?.link||v?.url||'').trim();
 }
 function videoSearchText(v){
-  // 검색 대상은 영상 제목과 메모만 사용합니다. URL/유튜브 ID/해시태그는 검색에서 제외합니다.
-  return stripSearchNoise(`${v?.title||v?.name||''} ${v?.memo||v?.content||''}`);
+  // 검색 대상은 카드 제목 + 메모입니다. link/url 필드는 일반 검색 대상이 아닙니다.
+  // 단, 제목이 비어 있어 화면 제목이 URL로 표시되거나, 제목 필드 자체가 URL이면 그 URL은 제목으로 검색됩니다.
+  const shownTitle=visibleTitleOf(v);
+  const memo=String(v?.memo||v?.content||'');
+  return stripSearchNoise(`${shownTitle} ${memo}`);
 }
 function matchesSearch(v,q){
   const query=stripSearchNoise(q);
   if(!query)return true;
-  if(isWeakLatinQuery(query))return false;
+  const shownTitle=visibleTitleOf(v);
   const target=videoSearchText(v);
   if(!target)return false;
+  const raw=query.replace(/\s+/g,'');
+  // 한 글자 영문/숫자는 URL 제목, 해시태그, 영상 ID 등에서 오탐이 너무 많으므로 항상 검색하지 않습니다.
+  // 예: 'r' 입력 시 youtube.com/shorts 의 r 때문에 전부 걸리는 문제 방지.
+  // URL 제목 검색은 'yt', 'youtube', 'shorts', 'https'처럼 2글자 이상부터 허용합니다.
+  if(!raw.startsWith('#') && /^[a-z0-9]$/i.test(raw))return false;
   return target.includes(query)||compactSearch(target).includes(compactSearch(query));
 }
 function filteredItems(){
