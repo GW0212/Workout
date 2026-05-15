@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta id="viewportMeta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Workout</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%23ff4e2a' x='0' y='0' width='64' height='64' rx='14'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='34'%3E%F0%9F%92%AA%3C/text%3E%3C/svg%3E" />
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -254,6 +254,21 @@ body.dark .drop-placeholder{
   .order-title{font-size:12.5px!important;}
 }
 
+
+/* v73: iOS Safari search zoom prevention/reset */
+@media(max-width:768px){
+  .searchbar input,
+  #mSearchInput,
+  #searchInput{
+    font-size:16px!important;
+    line-height:1.2!important;
+    transform:translateZ(0);
+  }
+  .searchbar{
+    -webkit-text-size-adjust:100%;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -466,11 +481,47 @@ function filteredTotalCount(){
     .filter(v=>matchesSearch(v,searchText))
     .length;
 }
+
+
+/* v73: mobile Safari search focus zoom guard */
+const VIEWPORT_LOCKED='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+function setViewportLocked(){
+  const meta=document.querySelector('meta[name="viewport"]');
+  if(meta&&meta.getAttribute('content')!==VIEWPORT_LOCKED) meta.setAttribute('content',VIEWPORT_LOCKED);
+}
+function resetMobileZoom(){
+  if(!isMobile())return;
+  setViewportLocked();
+  // iOS Safari가 입력 포커스 후 확대 상태로 남는 경우 강제로 레이아웃을 한 번 재계산시킵니다.
+  document.documentElement.style.webkitTextSizeAdjust='100%';
+  document.body.style.webkitTextSizeAdjust='100%';
+  const y=window.scrollY||document.documentElement.scrollTop||0;
+  requestAnimationFrame(()=>{
+    try{window.scrollTo(0,y)}catch(_){ }
+  });
+}
+function bindSearchZoomGuards(root=document){
+  root.querySelectorAll('#searchInput,#mSearchInput').forEach(input=>{
+    if(input.dataset.zoomGuard==='1')return;
+    input.dataset.zoomGuard='1';
+    input.addEventListener('focus',()=>setViewportLocked(),{passive:true});
+    input.addEventListener('blur',()=>setTimeout(resetMobileZoom,40),{passive:true});
+    input.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        input.blur();
+        setTimeout(resetMobileZoom,40);
+      }
+    });
+  });
+}
+
 function renderWorkspace(){
   const menu=currentMenu(); if(!menu){homeMode=true;renderHome();return}
   const shorts=menuItems().filter(v=>v.type==='shorts').length, long=menuItems().filter(v=>v.type==='longform').length;
   const arr=filteredItems(); const total=filteredTotalCount();
   $('ct').innerHTML=`<section class="workspace"><div class="toolbar panel"><div class="desktop-tools searchbar"><span class="search-icon">⌕</span><input id="searchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><div class="desktop-tools toolbar-actions"><select id="sortSelect" onchange="setSort(this.value)"><option value="manual">직접 정렬</option><option value="new">최신순</option><option value="old">오래된순</option><option value="title">제목순</option></select><button class="btn small ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button><button class="btn small" onclick="clearFilters()">초기화</button><span class="count-chip">${arr.length}/${total}</span><div class="subtabs"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button></div><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div><div class="mobile-tools"><div class="mobile-search-row"><div class="searchbar"><span class="search-icon">⌕</span><input id="mSearchInput" value="${esc(searchText)}" placeholder="영상 제목 또는 메모 검색" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" oncompositionstart="this.composing=true" oncompositionend="this.composing=false;setSearch(this.value)" oninput="if(!this.composing)setSearch(this.value)"></div><button class="btn ${favOnly?'on':''}" onclick="toggleFavFilter()">★ 즐겨찾기</button></div><div class="mobile-sub-row"><button class="subtab ${activeType==='shorts'?'on':''}" onclick="setType('shorts')">⚡ 숏폼 <b>${shorts}</b></button><button class="subtab ${activeType==='longform'?'on':''}" onclick="setType('longform')">▶ 롱폼 <b>${long}</b></button><button class="btn primary" onclick="openAddVideo()">＋ 링크 추가</button><button class="btn order-btn" onclick="openOrder()"><span class="order-icon">↕</span><span>순서 변경</span></button></div></div></div><div id="gridWrap"></div></section>`;
+  bindSearchZoomGuards($('ct'));
   const s=$('sortSelect'); if(s)s.value=sortMode;
   renderCards(arr,total);
 }
@@ -484,6 +535,8 @@ function setSearch(v){
       const total=filteredTotalCount();
       document.querySelectorAll('.count-chip').forEach(ch=>ch.textContent=`${arr.length}/${total}`);
       renderCards(arr,total);
+      bindSearchZoomGuards($('ct'));
+      if(isMobile()) setViewportLocked();
       const input=isMobile()?$('mSearchInput'):$('searchInput');
       if(input&&document.activeElement!==input){
         input.focus({preventScroll:true});
@@ -756,7 +809,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelec
 window.addEventListener('scroll',()=>{$('toTop').classList.toggle('show',window.scrollY>420)},{passive:true});
 
 if(!localStorage.getItem(LS_THEME))localStorage.setItem(LS_THEME,'light');
-loadData();applyTheme();render();
+loadData();applyTheme();render();bindSearchZoomGuards(document);setViewportLocked();
 </script>
 </body>
 </html>
